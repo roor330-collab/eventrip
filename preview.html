@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Eventrip — Live the Experience</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet"/>
+
+<style>
+:root {
+  --bg:      #0C0E16;
+  --surface: #12151F;
+  --card:    #181C2A;
+  --border:  rgba(255,255,255,0.08);
+  --accent:  #6490FF;           /* bleu pervenche doux */
+  --accent-dim: rgba(100,144,255,0.12);
+  --text:    #E8ECF8;
+  --sub:     rgba(232,236,248,0.50);
+  --red:     #F87171;
+  --amber:   #FBBF24;
+}
+
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); overflow-x: hidden; }
+html { scroll-behavior: smooth; }
+
+/* ── Typography ── */
+.accent      { color: var(--accent); }
+.grad-text   {
+  background: linear-gradient(115deg, #fff 30%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.label {
+  font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--sub);
+}
+
+/* ── Surfaces ── */
+.glass {
+  background: rgba(18,21,31,0.80);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--border);
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+.card:hover {
+  border-color: rgba(100,144,255,0.2);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  transform: translateY(-2px);
+}
+.card-flat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 10px;
+  transition: background .15s, box-shadow .15s, transform .15s;
+  box-shadow: 0 2px 12px rgba(100,144,255,0.25);
+}
+.btn-primary:hover {
+  background: #5580F0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px rgba(100,144,255,0.35);
+}
+.btn-ghost {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--sub);
+  border-radius: 10px;
+  transition: background .15s, color .15s;
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.09); color: var(--text); }
+.btn-outline {
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-radius: 10px;
+  transition: background .15s;
+}
+.btn-outline:hover { background: rgba(100,144,255,0.2); }
+
+/* ── Navbar ── */
+.navbar {
+  background: rgba(12,14,22,0.90);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-link { color: var(--sub); transition: color .15s; font-size: 14px; font-weight: 500; }
+.nav-link:hover { color: var(--text); }
+
+/* ── Hero ── */
+.hero-wrap {
+  position: relative; min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  overflow: hidden;
+}
+.hero-img {
+  position: absolute; inset: 0;
+  background: url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1600&q=80') center/cover no-repeat;
+  filter: brightness(.35) saturate(.9);
+}
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(12,14,22,0.1) 0%, rgba(12,14,22,0.97) 80%);
+}
+
+/* ── Search box ── */
+.search-box {
+  background: rgba(18,21,31,0.92);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(100,144,255,0.18);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.search-field {
+  background: transparent; border: none; outline: none;
+  color: var(--text); width: 100%; font-size: 14px; font-family: inherit;
+}
+.search-field::placeholder { color: var(--sub); }
+.field-zone {
+  border-radius: 10px; transition: background .15s; cursor: text;
+}
+.field-zone:hover { background: rgba(100,144,255,0.05); }
+
+.tab-on  { color: var(--accent); border-bottom: 2px solid var(--accent); font-weight: 600; }
+.tab-off { color: var(--sub); border-bottom: 2px solid transparent; transition: color .15s; }
+.tab-off:hover { color: var(--text); }
+
+/* ── Pills / badges ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.pill-ok   { background: rgba(74,222,128,0.10); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
+.pill-warn { background: rgba(251,191,36,0.10); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
+.pill-full { background: rgba(248,113,113,0.10); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+
+.type-badge {
+  font-size: 11px; padding: 2px 9px; border-radius: 20px; font-weight: 600;
+  background: rgba(255,255,255,0.07); color: var(--sub); border: 1px solid var(--border);
+}
+
+.img-price {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(12,14,22,0.78); backdrop-filter: blur(8px);
+  color: var(--text); font-weight: 700; font-size: 12px;
+  padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border);
+}
+
+/* ── Options ── */
+.opt {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px 15px; cursor: pointer;
+  transition: border-color .2s, background .2s;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.opt:hover { border-color: rgba(100,144,255,0.25); background: rgba(100,144,255,0.03); }
+.opt.sel   { border-color: var(--accent); background: var(--accent-dim); }
+
+/* ── Step wrapper ── */
+.step-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+  transition: border-color .2s;
+}
+.step-wrap.open { border-color: rgba(100,144,255,0.3); }
+
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent); color: #fff;
+  font-weight: 700; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.step-num.pending { background: rgba(255,255,255,0.06); color: var(--sub); }
+.step-num.done {
+  background: rgba(74,222,128,0.12); color: #4ade80;
+  border: 1.5px solid rgba(74,222,128,0.25);
+}
+
+/* ── Total box ── */
+.total-box {
+  background: rgba(100,144,255,0.06);
+  border: 1px solid rgba(100,144,255,0.16);
+  border-radius: 16px;
+}
+
+/* ── Tour list ── */
+.tour-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; cursor: pointer;
+  transition: border-color .2s, background .2s;
+  position: relative; overflow: hidden;
+}
+.tour-row::before {
+  content:''; position: absolute; left:0; top:0; bottom:0;
+  width: 3px; background: var(--accent);
+  border-radius: 2px; opacity: 0; transition: opacity .2s;
+}
+.tour-row:hover { border-color: rgba(100,144,255,0.2); background: rgba(100,144,255,0.03); }
+.tour-row:hover::before { opacity: 1; }
+.tour-row.disabled { opacity: .4; cursor: not-allowed; }
+
+.date-chip {
+  min-width: 52px; text-align: center;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 9px; padding: 5px 8px;
+}
+
+/* ── Venue SVG ── */
+.vzone {
+  cursor: pointer;
+  transition: opacity .18s, filter .18s;
+  opacity: .72;
+}
+.vzone:hover { opacity: .95; filter: brightness(1.12); }
+.vzone.sel   { opacity: 1; filter: brightness(1.18) drop-shadow(0 0 6px rgba(100,144,255,.5)); }
+
+/* ── Checkout ── */
+.ci {
+  width: 100%; background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 13px; color: var(--text);
+  font-size: 14px; outline: none; font-family: inherit;
+  transition: border-color .2s;
+}
+.ci:focus { border-color: rgba(100,144,255,0.4); }
+.ci::placeholder { color: var(--sub); }
+
+/* ── Pages ── */
+.page { display: none; }
+.page.on { display: block; }
+
+/* ── Animations — subtiles ── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── Brand font ── */
+.brand { font-family: 'Space Grotesk', sans-serif; font-weight: 800; }
+.u1 { animation: fadeUp .5s ease both; }
+.u2 { animation: fadeUp .5s .08s ease both; opacity:0; }
+.u3 { animation: fadeUp .5s .16s ease both; opacity:0; }
+.u4 { animation: fadeUp .5s .24s ease both; opacity:0; }
+
+/* ── Autocomplete ── */
+.ac-item { background: var(--surface); }
+.ac-item:hover, .ac-item.ac-active { background: rgba(100,144,255,0.07); }
+.ac-item:last-child { border-bottom: none !important; }
+
+/* ── Misc ── */
+.vdiv { width:1px; height:36px; background: var(--border); }
+.swipe { overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.swipe::-webkit-scrollbar { display:none; }
+.snap { scroll-snap-align:start; }
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.12); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH MODAL ══ -->
+<div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px)" onclick="if(event.target===this)closeAuth()">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(420px,92vw);background:var(--surface);border:1px solid rgba(100,144,255,0.2);border-radius:20px;overflow:hidden">
+    <!-- Tabs -->
+    <div class="flex border-b" style="border-color:var(--border)">
+      <button onclick="switchAuth('login')" id="auth-tab-login" class="flex-1 py-4 text-sm font-semibold transition-colors" style="color:var(--accent);border-bottom:2px solid var(--accent)">Se connecter</button>
+      <button onclick="switchAuth('signup')" id="auth-tab-signup" class="flex-1 py-4 text-sm font-semibold transition-colors" style="color:var(--sub);border-bottom:2px solid transparent">Créer un compte</button>
+    </div>
+    <!-- Login -->
+    <div id="auth-login" class="p-8">
+      <p class="text-xs mb-6" style="color:var(--sub)">Accédez à vos packs sauvegardés, billets et préférences.</p>
+      <div class="space-y-3 mb-4">
+        <input class="ci" placeholder="Email" type="email"/>
+        <input class="ci" placeholder="Mot de passe" type="password"/>
+      </div>
+      <a href="#" class="text-xs accent block text-right mb-5">Mot de passe oublié ?</a>
+      <button class="btn-primary w-full py-2.5 text-sm" onclick="closeAuth()">Se connecter</button>
+      <div class="flex items-center gap-3 my-5"><div style="flex:1;height:1px;background:var(--border)"></div><span class="text-xs" style="color:var(--sub)">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
+      <button class="btn-ghost w-full py-2.5 text-sm flex items-center justify-center gap-2" onclick="closeAuth()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continuer avec Google
+      </button>
+    </div>
+    <!-- Signup -->
+    <div id="auth-signup" style="display:none" class="p-8">
+      <p class="text-xs mb-6" style="color:var(--sub)">Rejoignez la communauté Eventrip — c'est gratuit.</p>
+      <div class="space-y-3 mb-5">
+        <div class="grid grid-cols-2 gap-3">
+          <input class="ci" placeholder="Prénom"/>
+          <input class="ci" placeholder="Nom"/>
+        </div>
+        <input class="ci" placeholder="Email" type="email"/>
+        <input class="ci" placeholder="Mot de passe" type="password"/>
+      </div>
+      <button class="btn-primary w-full py-2.5 text-sm" onclick="closeAuth()">Créer mon compte</button>
+      <div class="flex items-center gap-3 my-5"><div style="flex:1;height:1px;background:var(--border)"></div><span class="text-xs" style="color:var(--sub)">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
+      <button class="btn-ghost w-full py-2.5 text-sm flex items-center justify-center gap-2" onclick="closeAuth()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continuer avec Google
+      </button>
+      <p class="text-xs text-center mt-4" style="color:var(--sub)">En créant un compte vous acceptez nos <a href="#" class="accent">CGU</a> et notre <a href="#" class="accent">Politique de confidentialité</a>.</p>
+    </div>
+    <button onclick="closeAuth()" style="position:absolute;top:14px;right:16px;color:var(--sub);font-size:20px;background:none;border:none;cursor:pointer;line-height:1">×</button>
+  </div>
+</div>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar fixed top-0 left-0 right-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-8">
+      <a href="#" onclick="go('home')" class="flex items-center gap-2.5">
+        <!-- Logo: avion + note musicale fusion -->
+        <div style="width:36px;height:36px;flex-shrink:0">
+          <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="10" fill="var(--accent)"/>
+            <!-- Avion simplifié -->
+            <path d="M28 8L8 17.5l7 1.5 2 6.5 4-5 7 2L28 8z" fill="white" opacity="0.95"/>
+            <!-- Petite note musicale -->
+            <circle cx="10" cy="25" r="2.2" fill="white" opacity="0.7"/>
+            <line x1="12.2" y1="25" x2="12.2" y2="19.5" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+            <line x1="12.2" y1="19.5" x2="15" y2="20.8" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+          </svg>
+        </div>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:17px;letter-spacing:-.03em;color:var(--text)">Eventrip</span>
+      </a>
+      <div class="hidden md:flex gap-6">
+        <a href="#" onclick="go('home')"   class="nav-link">Événements</a>
+        <a href="#" onclick="go('search')" class="nav-link">Tournées</a>
+        <a href="#" onclick="go('forum')"  class="nav-link">Forum</a>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="openAuth('login')" class="btn-ghost px-4 py-2 text-sm hidden md:block">Se connecter</button>
+      <button onclick="openAuth('signup')" class="btn-ghost px-4 py-2 text-sm hidden md:block" style="color:var(--accent);border-color:rgba(100,144,255,0.3)">Créer un compte</button>
+      <button onclick="go('home')" class="btn-primary px-4 py-2 text-sm ml-1">Réserver un pack</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ API CONFIG BANNER ══ -->
+<div id="api-banner" style="position:fixed;top:64px;left:0;right:0;z-index:40;background:rgba(12,14,22,0.96);border-bottom:1px solid rgba(100,144,255,0.15);backdrop-filter:blur(14px)">
+  <div class="max-w-7xl mx-auto px-6" style="padding-top:10px;padding-bottom:10px">
+    <div class="flex flex-wrap items-center gap-2">
+
+      <!-- Status pill MusicBrainz (toujours actif) -->
+      <div class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold" style="background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.25);color:#4ade80;flex-shrink:0">
+        <div style="width:6px;height:6px;border-radius:50%;background:#4ade80"></div>
+        MusicBrainz · actif
+      </div>
+
+      <!-- Ticketmaster -->
+      <div class="flex items-center gap-1.5">
+        <input id="tk-key" class="ci text-xs" placeholder="Clé Ticketmaster gratuite" style="height:30px;max-width:220px"
+          oninput="setApiKey('tm',this.value)"/>
+        <button onclick="if(API.tm){showApiStatus('⏳…');loadTMEvents();}" class="btn-ghost px-3 text-xs font-semibold" style="height:30px;white-space:nowrap;flex-shrink:0">Activer</button>
+      </div>
+
+      <!-- Amadeus -->
+      <div class="flex items-center gap-1.5">
+        <input id="am-key" class="ci text-xs" placeholder="Amadeus Client ID" style="height:30px;max-width:160px"
+          oninput="setApiKey('am',this.value)"/>
+        <input id="am-secret" class="ci text-xs" placeholder="Secret" style="height:30px;max-width:110px"
+          oninput="setApiKey('am_secret',this.value)"/>
+        <button onclick="if(API.am&&API.am_secret){getAmadeusToken().then(refreshTransport);}" class="btn-ghost px-3 text-xs font-semibold" style="height:30px;white-space:nowrap;flex-shrink:0">Activer</button>
+      </div>
+
+      <div class="flex items-center gap-3 ml-auto flex-shrink-0">
+        <a href="https://developer.ticketmaster.com/products-and-docs/apis/getting-started/" target="_blank" class="text-xs accent font-medium" style="text-decoration:none">Clé TM gratuite →</a>
+        <a href="https://developers.amadeus.com/self-service" target="_blank" class="text-xs accent font-medium" style="text-decoration:none">Clé Amadeus →</a>
+        <button onclick="document.getElementById('api-banner').style.display='none'" style="color:var(--sub);font-size:18px;background:none;border:none;cursor:pointer;line-height:1">×</button>
+      </div>
+    </div>
+    <!-- Status line -->
+    <div id="api-status" style="display:none;padding-top:6px">
+      <span id="api-status-msg" class="text-xs" style="color:var(--sub)"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     HOME
+══════════════════════════════ -->
+<div id="page-home" class="page on">
+
+  <!-- Hero -->
+  <div class="hero-wrap">
+    <div class="hero-img"></div>
+    <div class="hero-overlay"></div>
+    <div style="position:absolute;top:25%;left:5%;width:320px;height:320px;border-radius:50%;background:rgba(100,144,255,0.06);filter:blur(80px);pointer-events:none"></div>
+
+    <div style="position:relative;z-index:2" class="max-w-7xl mx-auto w-full px-6 pb-16 pt-32">
+
+      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-6 u1">
+        <div style="width:6px;height:6px;border-radius:50%;background:#4ade80"></div>
+        <span class="text-xs font-medium" style="color:var(--sub)">40 millions d'événements · France, UK, Espagne</span>
+      </div>
+
+      <h1 class="text-5xl md:text-[62px] font-bold mb-4 u2" style="line-height:1.06;letter-spacing:-.03em">
+        Votre prochain grand voyage<br/>
+        <span class="grad-text">commence par un événement.</span>
+      </h1>
+
+      <p class="text-lg mb-10 u3" style="color:var(--sub);max-width:500px;line-height:1.6">
+        Billet + Vol/Train + Hôtel réunis en une seule réservation — concerts, sport &amp; festivals.
+      </p>
+
+      <!-- Search -->
+      <div class="search-box p-1.5 max-w-3xl u4">
+        <div class="flex border-b px-2 pt-1 gap-0.5" style="border-color:var(--border)">
+          <button onclick="setTab('artist')" id="t-artist" class="tab-on  px-4 py-2.5 text-sm rounded-t-lg flex items-center gap-1.5">🎤 Artiste</button>
+          <button onclick="setTab('event')"  id="t-event"  class="tab-off px-4 py-2.5 text-sm rounded-t-lg flex items-center gap-1.5">🎫 Événement</button>
+          <button onclick="setTab('city')"   id="t-city"   class="tab-off px-4 py-2.5 text-sm rounded-t-lg flex items-center gap-1.5">📍 Ville</button>
+        </div>
+
+        <div class="grid grid-cols-12 items-center p-2">
+          <div class="col-span-5 field-zone px-3 py-2 flex items-center gap-2.5" style="position:relative">
+            <svg class="w-4 h-4 flex-shrink-0 accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <div class="w-full">
+              <div class="label mb-0.5" id="q-label">Artiste</div>
+              <input id="q-input" class="search-field" placeholder="Taylor Swift, Coldplay…"
+                oninput="onSearchInput(this.value)" onkeydown="onSearchKey(event)" autocomplete="off"/>
+            </div>
+            <!-- Autocomplete dropdown -->
+            <div id="autocomplete-box" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid rgba(100,144,255,0.2);border-radius:12px;overflow:hidden;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,0.5);margin-top:6px">
+              <div id="autocomplete-list"></div>
+            </div>
+          </div>
+          <div class="col-span-1 flex justify-center"><div class="vdiv"></div></div>
+          <div class="col-span-3 field-zone px-3 py-2 flex items-center gap-2.5 cursor-pointer">
+            <svg class="w-4 h-4 flex-shrink-0" style="color:var(--sub)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div>
+              <div class="label mb-0.5">Date</div>
+              <div class="text-sm" style="color:var(--sub)">Quand ?</div>
+            </div>
+          </div>
+          <div class="col-span-1 flex justify-center"><div class="vdiv"></div></div>
+          <div class="col-span-2 field-zone px-3 py-2 flex items-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4 flex-shrink-0" style="color:var(--sub)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>
+              <div class="label mb-0.5">Départ</div>
+              <div class="text-sm" style="color:var(--sub)">D'où ?</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-2 pb-2">
+          <button onclick="go('search')" class="btn-primary w-full py-2.5 rounded-xl text-sm flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Trouver mon expérience
+          </button>
+        </div>
+      </div>
+
+      <p class="text-xs mt-2.5 u4" style="color:rgba(232,236,248,0.22)">Agrégé en temps réel via Ticketmaster, Amadeus &amp; Booking.com</p>
+    </div>
+  </div>
+
+  <!-- Events -->
+  <div style="background:var(--bg)" class="pb-24">
+    <div class="max-w-7xl mx-auto px-6 pt-16">
+
+      <!-- ── Meilleurs événements à venir (featured banner) ── -->
+      <div class="mb-12">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <p class="label mb-1">⭐ Sélection Eventrip</p>
+            <h2 class="text-2xl font-bold" style="letter-spacing:-.02em">Meilleurs événements à venir</h2>
+          </div>
+          <button onclick="go('search')" class="btn-ghost px-4 py-2 text-sm flex items-center gap-1.5">
+            Voir tout <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+        <div class="grid md:grid-cols-3 gap-4">
+          <!-- Featured 1 -->
+          <div class="card overflow-hidden cursor-pointer col-span-1 md:col-span-2" onclick="go('event')" style="position:relative;min-height:200px">
+            <div style="position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=900&q=80') center/cover;filter:brightness(.35)"></div>
+            <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(100,144,255,0.2),transparent 60%),linear-gradient(to top,rgba(12,14,22,0.95) 0%,transparent 60%)"></div>
+            <div style="position:relative;z-index:2;padding:20px;height:100%;display:flex;flex-direction:column;justify-content:flex-end">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="type-badge">🎤 Concert</span>
+                <span class="pill pill-ok">Disponible</span>
+              </div>
+              <h3 class="font-bold text-xl mb-1" style="letter-spacing:-.02em">Taylor Swift — Eras Tour</h3>
+              <p class="text-sm mb-4" style="color:var(--sub)">📍 La Défense Arena · Paris · 15 Jul 2025</p>
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-lg accent">dès 389 €</span>
+                <button class="btn-primary px-4 py-2 text-xs">Composer mon pack →</button>
+              </div>
+            </div>
+          </div>
+          <!-- Featured 2 & 3 -->
+          <div class="flex flex-col gap-4">
+            <div class="card overflow-hidden cursor-pointer flex-1" onclick="go('event')" style="position:relative;min-height:90px">
+              <div style="position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&q=80') center/cover;filter:brightness(.3)"></div>
+              <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(12,14,22,0.95) 0%,transparent 65%)"></div>
+              <div style="position:relative;z-index:2;padding:16px;height:100%;display:flex;flex-direction:column;justify-content:flex-end">
+                <div class="flex items-center gap-2 mb-1"><span class="type-badge" style="font-size:10px">🎸 Rock</span><span class="pill pill-warn" style="font-size:10px">Dernières places</span></div>
+                <h4 class="font-semibold text-sm">Coldplay · Music of Spheres</h4>
+                <div class="flex items-center justify-between mt-1">
+                  <span class="text-xs" style="color:var(--sub)">Madrid · 5 Jun</span>
+                  <span class="font-bold text-sm accent">dès 310 €</span>
+                </div>
+              </div>
+            </div>
+            <div class="card overflow-hidden cursor-pointer flex-1" onclick="go('event')" style="position:relative;min-height:90px">
+              <div style="position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&q=80') center/cover;filter:brightness(.3)"></div>
+              <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(12,14,22,0.95) 0%,transparent 65%)"></div>
+              <div style="position:relative;z-index:2;padding:16px;height:100%;display:flex;flex-direction:column;justify-content:flex-end">
+                <div class="flex items-center gap-2 mb-1"><span class="type-badge" style="font-size:10px">⚽ Sport</span><span class="pill pill-ok" style="font-size:10px">Disponible</span></div>
+                <h4 class="font-semibold text-sm">Champions League Final</h4>
+                <div class="flex items-center justify-between mt-1">
+                  <span class="text-xs" style="color:var(--sub)">Wembley · 31 Mai</span>
+                  <span class="font-bold text-sm accent">dès 520 €</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mb-7">
+        <div>
+          <p class="label mb-1">À la une</p>
+          <h2 class="text-2xl font-bold" style="letter-spacing:-.02em">Événements populaires</h2>
+        </div>
+        <button onclick="go('search')" class="btn-ghost px-4 py-2 text-sm flex items-center gap-1.5">
+          Voir tout <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      <!-- Real events loaded from Ticketmaster (or demo data) -->
+      <div id="events-swipe" class="swipe flex gap-4 pb-3">
+
+        <!-- Skeleton cards shown while loading -->
+        <div class="snap card overflow-hidden flex-shrink-0 event-skeleton" style="min-width:262px">
+          <div style="height:158px;background:var(--surface);animation:pulse 1.5s infinite"></div>
+          <div class="p-4 space-y-2"><div style="height:12px;background:var(--surface);border-radius:6px;animation:pulse 1.5s .1s infinite"></div><div style="height:10px;background:var(--surface);border-radius:6px;width:70%;animation:pulse 1.5s .2s infinite"></div></div>
+        </div>
+        <div class="snap card overflow-hidden flex-shrink-0 event-skeleton" style="min-width:262px">
+          <div style="height:158px;background:var(--surface);animation:pulse 1.5s .05s infinite"></div>
+          <div class="p-4 space-y-2"><div style="height:12px;background:var(--surface);border-radius:6px;animation:pulse 1.5s .15s infinite"></div><div style="height:10px;background:var(--surface);border-radius:6px;width:55%;animation:pulse 1.5s .25s infinite"></div></div>
+        </div>
+        <div class="snap card overflow-hidden flex-shrink-0 event-skeleton" style="min-width:262px">
+          <div style="height:158px;background:var(--surface);animation:pulse 1.5s .1s infinite"></div>
+          <div class="p-4 space-y-2"><div style="height:12px;background:var(--surface);border-radius:6px;animation:pulse 1.5s .2s infinite"></div><div style="height:10px;background:var(--surface);border-radius:6px;width:80%;animation:pulse 1.5s .3s infinite"></div></div>
+        </div>
+
+      </div>
+      <p id="swipe-hint" class="text-xs text-center mt-2" style="color:var(--sub)">Chargement des événements…</p>
+
+      <!-- How it works -->
+      <div class="mt-22 pt-4">
+        <div style="height:1px;background:var(--border);margin-bottom:56px"></div>
+        <p class="label mb-2">Simple &amp; rapide</p>
+        <h2 class="text-2xl font-bold mb-10" style="letter-spacing:-.02em">3 étapes, 1 seul paiement</h2>
+        <div class="grid md:grid-cols-3 gap-5 max-w-3xl">
+          <div class="card-flat p-6">
+            <div style="width:40px;height:40px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px">🎫</div>
+            <p class="label mb-2">Étape 1</p>
+            <h3 class="font-semibold text-base mb-2">Choisissez votre événement</h3>
+            <p class="text-sm" style="color:var(--sub);line-height:1.6">Cherchez par artiste, événement ou ville parmi 40M+ événements en temps réel.</p>
+          </div>
+          <div class="card-flat p-6" style="border-color:rgba(100,144,255,0.22)">
+            <div style="width:40px;height:40px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px">✈️</div>
+            <p class="label mb-2">Étape 2</p>
+            <h3 class="font-semibold text-base mb-2">Composez votre pack</h3>
+            <p class="text-sm" style="color:var(--sub);line-height:1.6">Nombre de voyageurs, ville de départ, place dans la salle. Le prix se calcule en direct.</p>
+          </div>
+          <div class="card-flat p-6">
+            <div style="width:40px;height:40px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px">🎉</div>
+            <p class="label mb-2">Étape 3</p>
+            <h3 class="font-semibold text-base mb-2">Réservez en un clic</h3>
+            <p class="text-sm" style="color:var(--sub);line-height:1.6">Un seul paiement, un email de confirmation. Tout est synchronisé et garanti.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trust -->
+      <div class="flex flex-wrap gap-8 mt-16 pb-4" style="border-top:1px solid var(--border);padding-top:32px;margin-top:48px">
+        <div class="flex items-center gap-2 text-sm" style="color:var(--sub)">
+          <svg class="w-4 h-4 accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Paiement SSL sécurisé
+        </div>
+        <div class="flex items-center gap-2 text-sm" style="color:var(--sub)">
+          <svg class="w-4 h-4 accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Support 24h/24
+        </div>
+        <div class="flex items-center gap-2 text-sm" style="color:var(--sub)">
+          <svg class="w-4 h-4" style="color:#4ade80" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Meilleur prix garanti
+        </div>
+        <div class="flex items-center gap-2 text-sm" style="color:var(--sub)">
+          <svg class="w-4 h-4 accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          40M+ événements
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════
+     TOURNÉE
+══════════════════════════════ -->
+<div id="page-search" class="page">
+<div style="background:var(--bg);min-height:100vh;padding-top:64px">
+
+  <div class="glass border-b" style="border-color:var(--border);padding:10px 0">
+    <div class="max-w-7xl mx-auto px-6 flex gap-3">
+      <div class="flex-1 flex items-center gap-2.5 px-4 py-2.5 rounded-xl" style="background:var(--card);border:1px solid var(--border)">
+        <svg class="w-4 h-4 accent flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-field text-sm flex-1" value="Taylor Swift"/>
+      </div>
+      <button onclick="go('event')" class="btn-primary px-5 py-2.5 text-sm font-semibold">Rechercher</button>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 py-8">
+
+    <!-- Tournées en cours header -->
+    <div class="mb-8">
+      <p class="label mb-1">🎯 En ce moment</p>
+      <h2 class="text-2xl font-bold mb-1" style="letter-spacing:-.02em">Tournées en cours</h2>
+      <p class="text-sm" style="color:var(--sub)">Des artistes actuellement en tournée avec des dates disponibles</p>
+    </div>
+
+    <!-- Ongoing tours pills -->
+    <div class="flex flex-wrap gap-2 mb-8">
+      <button onclick="filterTour('all')" id="ft-all" class="btn-outline px-4 py-1.5 text-xs font-semibold">Toutes</button>
+      <button onclick="filterTour('concert')" id="ft-concert" class="btn-ghost px-4 py-1.5 text-xs font-semibold">🎤 Concerts</button>
+      <button onclick="filterTour('sport')" id="ft-sport" class="btn-ghost px-4 py-1.5 text-xs font-semibold">⚽ Sport</button>
+      <button onclick="filterTour('festival')" id="ft-festival" class="btn-ghost px-4 py-1.5 text-xs font-semibold">🎪 Festivals</button>
+    </div>
+
+    <!-- Artist card -->
+    <div class="card-flat p-5 mb-8 flex items-center gap-5" style="border-color:rgba(100,144,255,0.2)">
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e0b35,#4c1d95);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">🎤</div>
+      <div class="flex-1">
+        <span class="type-badge mb-1.5 inline-block">Tournée en cours</span>
+        <h2 class="font-bold text-xl" style="letter-spacing:-.02em">Taylor Swift</h2>
+        <p class="text-sm" style="color:var(--sub)">The Eras Tour · Europe 2025 · 12 dates restantes</p>
+      </div>
+      <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl" style="background:var(--accent-dim);border:1px solid rgba(100,144,255,0.2)">
+        <div style="width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite"></div>
+        <span class="text-sm font-semibold accent">En tournée</span>
+      </div>
+    </div>
+
+    <p class="label mb-4">Dates européennes · 2025</p>
+    <div class="space-y-2" id="tour-list"></div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════
+     ÉVÉNEMENT
+══════════════════════════════ -->
+<div id="page-event" class="page">
+<div style="background:var(--bg);min-height:100vh;padding-top:64px">
+
+  <!-- Hero -->
+  <div style="position:relative;height:280px;overflow:hidden">
+    <div style="position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1400&q=80') center/cover;filter:brightness(.3) saturate(.9)"></div>
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,14,22,0.2) 0%,rgba(12,14,22,0.97) 100%)"></div>
+    <div style="position:absolute;top:15%;left:8%;width:250px;height:250px;border-radius:50%;background:rgba(100,144,255,0.05);filter:blur(70px);pointer-events:none"></div>
+    <div class="max-w-7xl mx-auto px-6 h-full flex flex-col justify-end pb-6" style="position:relative;z-index:2">
+      <span class="type-badge mb-2 inline-block" style="width:fit-content">Concert · Stadium Tour</span>
+      <h1 class="text-3xl font-bold mb-2" style="letter-spacing:-.025em">Taylor Swift — Eras Tour</h1>
+      <div class="flex flex-wrap gap-3 text-sm" style="color:var(--sub)">
+        <span>📍 La Défense Arena, Paris</span>
+        <span style="color:var(--border)">·</span>
+        <span>📅 15 Juillet 2025, 20h00</span>
+        <span style="color:var(--border)">·</span>
+        <span class="pill pill-ok">500 billets disponibles</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Builder -->
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+
+      <!-- Steps -->
+      <div class="flex-1 space-y-4">
+
+        <!-- Étape 0 — Infos voyageurs -->
+        <div class="step-wrap open" id="sw0">
+          <div class="px-5 py-4 flex items-center justify-between cursor-pointer" onclick="toggleStep(0)">
+            <div class="flex items-center gap-3">
+              <div class="step-num" id="sn0">0</div>
+              <div>
+                <span class="font-semibold">Informations voyage</span>
+                <span class="text-sm ml-2" style="color:var(--sub)" id="info-summary">Groupe et ville de départ</span>
+              </div>
+            </div>
+            <svg id="sa0" class="w-5 h-5 transition-transform" style="color:var(--sub)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+
+          <div class="px-5 pb-5" id="sc0">
+            <div class="grid md:grid-cols-2 gap-4">
+
+              <!-- Nombre -->
+              <div class="card-flat p-4">
+                <p class="label mb-3">Nombre de voyageurs</p>
+                <div class="flex items-center gap-4">
+                  <button onclick="chg(-1)" class="btn-ghost flex items-center justify-center font-bold text-xl" style="width:42px;height:42px;border-radius:10px">−</button>
+                  <div class="flex-1 text-center">
+                    <div class="text-4xl font-bold accent" id="grp-n">2</div>
+                    <div class="text-xs mt-1" style="color:var(--sub)" id="grp-l">2 pers. · 1 chambre double</div>
+                  </div>
+                  <button onclick="chg(1)"  class="btn-ghost flex items-center justify-center font-bold text-xl" style="width:42px;height:42px;border-radius:10px">+</button>
+                </div>
+                <div class="flex gap-1.5 mt-3 flex-wrap" id="grp-pils"></div>
+              </div>
+
+              <!-- Départ -->
+              <div class="card-flat p-4">
+                <p class="label mb-3">Ville de départ</p>
+                <div class="relative mb-2">
+                  <select id="dep-city" onchange="setDep(this.value)" class="ci" style="appearance:none;cursor:pointer;padding-right:32px">
+                    <option value="">— Choisir —</option>
+                    <option value="Lyon"       selected>Lyon</option>
+                    <option value="Marseille"         >Marseille</option>
+                    <option value="Bordeaux"          >Bordeaux</option>
+                    <option value="Toulouse"          >Toulouse</option>
+                    <option value="Nantes"            >Nantes</option>
+                    <option value="Strasbourg"        >Strasbourg</option>
+                    <option value="Bruxelles"         >Bruxelles</option>
+                    <option value="Genève"            >Genève</option>
+                  </select>
+                  <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:var(--sub)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div id="dep-info" class="text-xs rounded-lg px-3 py-2" style="background:var(--accent-dim);border:1px solid rgba(100,144,255,0.15);color:var(--sub)">
+                  ✈️ Vols Lyon → Paris · ~1h15 · à partir de <strong class="accent" id="dep-price">98 €</strong> A/R
+                </div>
+              </div>
+            </div>
+
+            <button onclick="confirmInfo()" class="btn-primary mt-4 px-5 py-2.5 text-sm">
+              Continuer → Choisir ma place
+            </button>
+          </div>
+        </div>
+
+        <!-- Étape 1 — Venue Map -->
+        <div class="step-wrap" id="sw1">
+          <div class="px-5 py-4 flex items-center justify-between cursor-pointer" onclick="toggleStep(1)">
+            <div class="flex items-center gap-3">
+              <div class="step-num pending" id="sn1">1</div>
+              <div>
+                <span class="font-semibold">Choisir ma place</span>
+                <span class="text-sm ml-2" style="color:var(--sub)" id="seat-sum">Cliquer sur la carte</span>
+              </div>
+            </div>
+            <svg id="sa1" class="w-5 h-5 transition-transform" style="color:var(--sub)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+
+          <div class="px-5 pb-5 hidden" id="sc1">
+            <p class="label mb-4">Carte interactive — La Défense Arena</p>
+            <div class="flex flex-col md:flex-row gap-5">
+
+              <!-- SVG -->
+              <div class="flex-1">
+                <svg viewBox="0 0 400 335" style="width:100%;max-width:400px;background:rgba(255,255,255,0.015);border-radius:12px;border:1px solid var(--border)" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="158" y="278" width="84" height="26" rx="5" fill="var(--accent)" opacity=".9"/>
+                  <text x="200" y="295" text-anchor="middle" fill="#fff" font-size="10" font-weight="600" font-family="Inter,sans-serif">SCÈNE</text>
+
+                  <ellipse id="vz-fosse" class="vzone" cx="200" cy="218" rx="65" ry="46"
+                    fill="#6490FF" stroke="rgba(100,144,255,.3)" stroke-width="1.5" onclick="pickZone('fosse')"/>
+                  <text x="200" y="215" text-anchor="middle" fill="#fff" font-size="9" font-weight="600" font-family="Inter,sans-serif" pointer-events="none">Fosse</text>
+                  <text x="200" y="227" text-anchor="middle" fill="rgba(255,255,255,.65)" font-size="8" font-family="Inter,sans-serif" pointer-events="none">149 €/pers.</text>
+
+                  <path id="vz-nord" class="vzone" d="M95 100 Q200 58 305 100 L293 152 Q200 118 107 152 Z"
+                    fill="#8fa8d8" stroke="rgba(143,168,216,.3)" stroke-width="1.5" onclick="pickZone('nord')"/>
+                  <text x="200" y="116" text-anchor="middle" fill="#0C0E16" font-size="9" font-weight="600" font-family="Inter,sans-serif" pointer-events="none">Tribune Nord</text>
+                  <text x="200" y="128" text-anchor="middle" fill="rgba(12,14,22,.55)" font-size="8" font-family="Inter,sans-serif" pointer-events="none">99 €/pers.</text>
+
+                  <path id="vz-ouest" class="vzone" d="M55 148 Q82 136 107 152 L102 232 Q72 242 50 226 Z"
+                    fill="#b0bdd4" stroke="rgba(176,189,212,.3)" stroke-width="1.5" onclick="pickZone('ouest')"/>
+                  <text x="77" y="194" text-anchor="middle" fill="#0C0E16" font-size="8" font-weight="600" font-family="Inter,sans-serif" pointer-events="none">Ouest</text>
+                  <text x="77" y="205" text-anchor="middle" fill="rgba(12,14,22,.5)" font-size="7" font-family="Inter,sans-serif" pointer-events="none">119 €</text>
+
+                  <path id="vz-est" class="vzone" d="M293 152 Q318 136 345 148 L350 226 Q328 242 298 232 Z"
+                    fill="#b0bdd4" stroke="rgba(176,189,212,.3)" stroke-width="1.5" onclick="pickZone('est')"/>
+                  <text x="323" y="194" text-anchor="middle" fill="#0C0E16" font-size="8" font-weight="600" font-family="Inter,sans-serif" pointer-events="none">Est</text>
+                  <text x="323" y="205" text-anchor="middle" fill="rgba(12,14,22,.5)" font-size="7" font-family="Inter,sans-serif" pointer-events="none">119 €</text>
+
+                  <rect id="vz-vip" class="vzone" x="152" y="165" width="96" height="46" rx="8"
+                    fill="#d4a84b" stroke="rgba(212,168,75,.3)" stroke-width="1.5" onclick="pickZone('vip')"/>
+                  <text x="200" y="182" text-anchor="middle" fill="#1a1000" font-size="9" font-weight="700" font-family="Inter,sans-serif" pointer-events="none">Carré d'Or VIP</text>
+                  <text x="200" y="194" text-anchor="middle" fill="rgba(26,16,0,.6)" font-size="7.5" font-family="Inter,sans-serif" pointer-events="none">299 € · Meet &amp; Greet</text>
+                  <text x="200" y="205" text-anchor="middle" fill="rgba(26,16,0,.45)" font-size="7" font-family="Inter,sans-serif" pointer-events="none">⭐ Service premium</text>
+
+                  <path id="vz-balcon" class="vzone" d="M45 58 Q200 8 355 58 L340 98 Q200 58 60 98 Z"
+                    fill="#6e7a96" stroke="rgba(110,122,150,.3)" stroke-width="1.5" onclick="pickZone('balcon')"/>
+                  <text x="200" y="70" text-anchor="middle" fill="#fff" font-size="9" font-weight="600" font-family="Inter,sans-serif" pointer-events="none">Balcon</text>
+                  <text x="200" y="82" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="8" font-family="Inter,sans-serif" pointer-events="none">69 €/pers.</text>
+                </svg>
+
+                <div class="flex flex-wrap gap-3 mt-3">
+                  <span class="text-xs flex items-center gap-1.5" style="color:var(--sub)"><span style="width:10px;height:10px;border-radius:3px;background:#6490FF;display:inline-block"></span>Fosse</span>
+                  <span class="text-xs flex items-center gap-1.5" style="color:var(--sub)"><span style="width:10px;height:10px;border-radius:3px;background:#d4a84b;display:inline-block"></span>VIP</span>
+                  <span class="text-xs flex items-center gap-1.5" style="color:var(--sub)"><span style="width:10px;height:10px;border-radius:3px;background:#8fa8d8;display:inline-block"></span>Tribune</span>
+                  <span class="text-xs flex items-center gap-1.5" style="color:var(--sub)"><span style="width:10px;height:10px;border-radius:3px;background:#6e7a96;display:inline-block"></span>Balcon</span>
+                </div>
+              </div>
+
+              <!-- POV -->
+              <div class="card-flat md:w-52 flex-shrink-0 overflow-hidden">
+                <div id="pov-empty" class="p-6 text-center" style="color:var(--sub)">
+                  <div class="text-3xl mb-2">👆</div>
+                  <p class="text-xs" style="line-height:1.5">Cliquez sur une zone pour voir la vue depuis votre siège</p>
+                </div>
+                <div id="pov-filled" class="hidden">
+                  <div style="height:138px;position:relative;overflow:hidden">
+                    <img id="pov-img" src="" alt="Vue" style="width:100%;height:100%;object-fit:cover"/>
+                    <div style="position:absolute;inset:0;background:linear-gradient(to top,var(--card) 0%,transparent 55%)"></div>
+                    <div style="position:absolute;bottom:8px;left:10px;right:10px">
+                      <div class="text-xs font-semibold accent" id="pov-name"></div>
+                      <div class="text-xs mt-0.5" style="color:rgba(232,236,248,.6)" id="pov-desc"></div>
+                    </div>
+                  </div>
+                  <div class="p-4">
+                    <div class="flex justify-between mb-3">
+                      <div><div class="font-bold accent" id="pov-pp">149 €</div><div class="text-xs" style="color:var(--sub)">par pers.</div></div>
+                      <div class="text-right"><div class="font-bold" id="pov-tot">298 €</div><div class="text-xs" style="color:var(--sub)" id="pov-for">pour 2 pers.</div></div>
+                    </div>
+                    <button onclick="confirmZone()" class="btn-primary w-full py-2 text-sm font-semibold" style="border-radius:9px">Choisir cette zone</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Étape 2 — Transport -->
+        <div class="step-wrap" id="sw2">
+          <div class="px-5 py-4 flex items-center justify-between cursor-pointer" onclick="toggleStep(2)">
+            <div class="flex items-center gap-3">
+              <div class="step-num pending" id="sn2">2</div>
+              <div>
+                <span class="font-semibold">Transport</span>
+                <span class="text-sm ml-2" style="color:var(--sub)" id="tsp-sum">Vol ou train depuis votre ville</span>
+              </div>
+            </div>
+            <svg id="sa2" class="w-5 h-5 transition-transform" style="color:var(--sub)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="px-5 pb-5 hidden" id="sc2">
+            <div class="flex items-center gap-2 mb-4 text-sm px-3 py-2 rounded-xl" style="background:var(--accent-dim);border:1px solid rgba(100,144,255,0.15)">
+              <svg class="w-4 h-4 accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span style="color:var(--sub)">Départ depuis</span>
+              <span class="font-semibold accent" id="tsp-dep">Lyon</span>
+              <button onclick="toggleStep(0)" class="text-xs ml-auto underline" style="color:var(--sub)">Modifier</button>
+            </div>
+            <div class="flex gap-2 mb-4">
+              <button onclick="setMode('vol')"   id="tm-vol"   class="btn-outline px-4 py-1.5 text-xs font-semibold">✈️ Vol</button>
+              <button onclick="setMode('train')" id="tm-train" class="btn-ghost   px-4 py-1.5 text-xs font-semibold">🚄 Train</button>
+            </div>
+            <div id="tsp-opts"></div>
+          </div>
+        </div>
+
+        <!-- Étape 3 — Hôtel -->
+        <div class="step-wrap" id="sw3">
+          <div class="px-5 py-4 flex items-center justify-between cursor-pointer" onclick="toggleStep(3)">
+            <div class="flex items-center gap-3">
+              <div class="step-num pending" id="sn3">3</div>
+              <div>
+                <span class="font-semibold">Hébergement</span>
+                <span class="text-sm ml-2" style="color:var(--sub)" id="htl-sum">Choisir un hôtel</span>
+              </div>
+            </div>
+            <svg id="sa3" class="w-5 h-5 transition-transform" style="color:var(--sub)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="px-5 pb-5 hidden" id="sc3">
+            <p class="text-xs mb-3" style="color:var(--sub)" id="htl-info">Pour 2 personnes · chambres doubles suggérées</p>
+            <div class="opt sel" onclick="pickH(this,'Hôtel Arena Suites',185)">
+              <div class="flex items-center gap-3">
+                <div style="width:44px;height:44px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:18px">🏨</div>
+                <div>
+                  <div class="font-semibold text-sm">Hôtel Arena Suites ⭐⭐⭐⭐</div>
+                  <div class="text-xs mt-0.5" style="color:var(--sub)">📍 350m de la salle · Courbevoie</div>
+                  <div class="flex gap-1.5 mt-1.5"><span class="pill pill-ok" style="font-size:10px;padding:1px 7px">Petit-déj inclus</span><span class="pill pill-ok" style="font-size:10px;padding:1px 7px">Annulation gratuite</span></div>
+                </div>
+              </div>
+              <div class="text-right"><div class="font-bold accent">185 €</div><div class="text-xs" style="color:var(--sub)">/nuit</div></div>
+            </div>
+            <div class="opt" onclick="pickH(this,'Ibis Paris La Défense',89)">
+              <div class="flex items-center gap-3">
+                <div style="width:44px;height:44px;border-radius:10px;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;font-size:18px">🏩</div>
+                <div>
+                  <div class="font-semibold text-sm">Ibis Paris La Défense ⭐⭐⭐</div>
+                  <div class="text-xs mt-0.5" style="color:var(--sub)">📍 800m · Puteaux</div>
+                  <div class="flex gap-1.5 mt-1.5"><span class="pill pill-ok" style="font-size:10px;padding:1px 7px">Annulation gratuite</span></div>
+                </div>
+              </div>
+              <div class="text-right"><div class="font-bold">89 €</div><div class="text-xs" style="color:var(--sub)">/nuit</div></div>
+            </div>
+            <div class="opt" onclick="pickH(this,'Renaissance Paris La Défense',260)">
+              <div class="flex items-center gap-3">
+                <div style="width:44px;height:44px;border-radius:10px;background:rgba(212,168,75,0.08);display:flex;align-items:center;justify-content:center;font-size:18px">🏰</div>
+                <div>
+                  <div class="font-semibold text-sm">Renaissance Paris ⭐⭐⭐⭐⭐</div>
+                  <div class="text-xs mt-0.5" style="color:var(--sub)">📍 200m · Puteaux</div>
+                  <div class="flex gap-1.5 mt-1.5"><span class="pill pill-warn" style="font-size:10px;padding:1px 7px">Spa inclus</span><span class="pill pill-warn" style="font-size:10px;padding:1px 7px">Vue panoramique</span></div>
+                </div>
+              </div>
+              <div class="text-right"><div class="font-bold">260 €</div><div class="text-xs" style="color:var(--sub)">/nuit</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <div style="width:288px;flex-shrink:0">
+        <div style="position:sticky;top:80px;display:flex;flex-direction:column;gap:12px">
+
+          <div class="total-box p-5">
+            <p class="label mb-4">Votre pack</p>
+            <div class="space-y-2.5 mb-4">
+              <div class="flex justify-between text-sm"><span style="color:var(--sub)">Billets <span class="font-semibold" style="color:var(--text)" id="sb-p">×2</span></span><span class="font-semibold" id="sb-t">298 €</span></div>
+              <div class="flex justify-between text-sm"><span style="color:var(--sub)">Transport <span class="font-semibold" style="color:var(--text)" id="sb-p2">×2</span></span><span class="font-semibold" id="sb-tr">378 €</span></div>
+              <div class="flex justify-between text-sm"><span style="color:var(--sub)">Hôtel <span class="font-semibold" style="color:var(--text)" id="sb-n">(1 nuit)</span></span><span class="font-semibold" id="sb-h">185 €</span></div>
+              <div class="flex justify-between text-sm"><span style="color:var(--sub)">Frais de service</span><span style="color:var(--sub)">29 €</span></div>
+            </div>
+            <div style="height:1px;background:rgba(100,144,255,0.15);margin:14px 0"></div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="font-semibold">Total</span>
+              <span class="text-2xl font-bold accent" id="sb-tot" style="transition:transform .18s">890 €</span>
+            </div>
+            <p class="text-xs mb-4" style="color:var(--sub)" id="sb-desc">Pour 2 personnes · 1 nuit</p>
+            <button onclick="go('checkout')" class="btn-primary w-full py-3 font-semibold text-sm" style="border-radius:11px">
+              Réserver ce pack →
+            </button>
+            <p class="text-xs text-center mt-2" style="color:var(--sub)">Paiement sécurisé · Annulation gratuite</p>
+          </div>
+
+          <div class="card-flat p-4">
+            <div class="flex items-center gap-3">
+              <div style="width:36px;height:36px;border-radius:9px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:16px">🛡️</div>
+              <div>
+                <div class="text-sm font-semibold">Assurance annulation</div>
+                <div class="text-xs mt-0.5" style="color:var(--sub)">Remboursement si l'événement est annulé</div>
+              </div>
+              <input type="checkbox" class="ml-auto" style="width:16px;height:16px;accent-color:var(--accent)"/>
+            </div>
+            <p class="text-xs mt-2 accent">+ 18 € par personne</p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════
+     FORUM
+══════════════════════════════ -->
+<div id="page-forum" class="page">
+<div style="background:var(--bg);min-height:100vh;padding-top:64px">
+
+  <!-- Header -->
+  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:32px 0">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <p class="label mb-1">💬 Communauté</p>
+          <h1 class="text-2xl font-bold" style="letter-spacing:-.02em">Forum Eventrip</h1>
+          <p class="text-sm mt-1" style="color:var(--sub)">Partagez vos retours d'expérience et préparez vos prochains événements ensemble</p>
+        </div>
+        <button onclick="openAuth('signup')" class="btn-primary px-5 py-2.5 text-sm flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Nouveau sujet
+        </button>
+      </div>
+      <!-- Categories -->
+      <div class="flex flex-wrap gap-2 mt-6">
+        <button class="btn-outline px-4 py-1.5 text-xs font-semibold">Tous les sujets</button>
+        <button class="btn-ghost px-4 py-1.5 text-xs font-semibold">🎤 Concerts</button>
+        <button class="btn-ghost px-4 py-1.5 text-xs font-semibold">⚽ Sport</button>
+        <button class="btn-ghost px-4 py-1.5 text-xs font-semibold">🎪 Festivals</button>
+        <button class="btn-ghost px-4 py-1.5 text-xs font-semibold">✈️ Tips voyage</button>
+        <button class="btn-ghost px-4 py-1.5 text-xs font-semibold">🏨 Hébergement</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 py-8 grid md:grid-cols-3 gap-8">
+
+    <!-- Threads list -->
+    <div class="md:col-span-2 space-y-3">
+
+      <!-- Thread 1 — événement passé -->
+      <div class="card p-5 cursor-pointer" style="animation:fadeUp .35s ease both">
+        <div class="flex items-start gap-4">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1e0b35,#4c1d95);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👩</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <span class="type-badge" style="font-size:10px">🎤 Concert passé</span>
+              <span class="text-xs" style="color:var(--sub)">· il y a 2 jours</span>
+            </div>
+            <h3 class="font-semibold text-sm mb-1.5">Mon retour sur le concert de Coldplay à Barcelona — incroyable mais le vol retour était galère 😅</h3>
+            <p class="text-xs mb-3" style="color:var(--sub);line-height:1.6">J'ai utilisé Eventrip pour le pack et c'était top niveau réservation. Par contre j'aurais aimé un rappel push 24h avant... Le concert en lui-même : 11/10 les bracelets lumineux c'est magique 🌈</p>
+            <div class="flex items-center gap-4 text-xs" style="color:var(--sub)">
+              <span>par <strong style="color:var(--text)">Claire M.</strong></span>
+              <span class="flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                14 réponses
+              </span>
+              <span class="flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                42 j'aime
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thread 2 — événement à venir -->
+      <div class="card p-5 cursor-pointer" style="animation:fadeUp .35s .05s ease both;opacity:0">
+        <div class="flex items-start gap-4">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0a1535,#1e3a8a);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👨</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <span class="type-badge" style="font-size:10px">⚽ Sport à venir</span>
+              <span class="pill pill-ok" style="font-size:10px">🔥 Populaire</span>
+              <span class="text-xs" style="color:var(--sub)">· il y a 5h</span>
+            </div>
+            <h3 class="font-semibold text-sm mb-1.5">Qui vient à la Champions League Final à Wembley ? On cherche covoiturage depuis Paris</h3>
+            <p class="text-xs mb-3" style="color:var(--sub);line-height:1.6">On est 3 à avoir pris le pack Eventrip vol+hotel, vol Paris-Londres le 30 mai. Si vous avez un 4ème qui cherche encore un billet d'avion, rejoignez-nous ! On a un super hôtel à Stratford.</p>
+            <div class="flex items-center gap-4 text-xs" style="color:var(--sub)">
+              <span>par <strong style="color:var(--text)">Thomas D.</strong></span>
+              <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>28 réponses</span>
+              <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>87 j'aime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thread 3 — conseil trip -->
+      <div class="card p-5 cursor-pointer" style="animation:fadeUp .35s .1s ease both;opacity:0">
+        <div class="flex items-start gap-4">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#031a0e,#14532d);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👩‍🦱</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <span class="type-badge" style="font-size:10px">✈️ Tips voyage</span>
+              <span class="text-xs" style="color:var(--sub)">· il y a 1 jour</span>
+            </div>
+            <h3 class="font-semibold text-sm mb-1.5">Guide : quel quartier choisir pour dormir près de La Défense Arena ?</h3>
+            <p class="text-xs mb-3" style="color:var(--sub);line-height:1.6">Après 3 concerts là-bas j'ai testé différents hôtels. Mon top : les hôtels côté Nanterre-Préfecture, 10 min à pied, bien moins chers que ceux proposés côté Paris ville. Thread complet ici ↓</p>
+            <div class="flex items-center gap-4 text-xs" style="color:var(--sub)">
+              <span>par <strong style="color:var(--text)">Sophie R.</strong></span>
+              <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>9 réponses</span>
+              <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>61 j'aime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thread 4 — événement à venir -->
+      <div class="card p-5 cursor-pointer" style="animation:fadeUp .35s .15s ease both;opacity:0">
+        <div class="flex items-start gap-4">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1c1005,#92400e);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🧔</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <span class="type-badge" style="font-size:10px">🎪 Festival à venir</span>
+              <span class="text-xs" style="color:var(--sub)">· il y a 3 jours</span>
+            </div>
+            <h3 class="font-semibold text-sm mb-1.5">Préparer Coachella 2025 depuis l'Europe — tout ce qu'il faut savoir</h3>
+            <p class="text-xs mb-3" style="color:var(--sub);line-height:1.6">ESTA, vols, location de voiture, camping vs hotel… J'ai consolidé 6 mois de recherches dans ce thread. Pas besoin d'agence de voyage classique, Eventrip + quelques astuces suffisent.</p>
+            <div class="flex items-center gap-4 text-xs" style="color:var(--sub)">
+              <span>par <strong style="color:var(--text)">Marc L.</strong></span>
+              <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>33 réponses</span>
+              <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>124 j'aime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thread 5 — critique -->
+      <div class="card p-5 cursor-pointer" style="animation:fadeUp .35s .2s ease both;opacity:0">
+        <div class="flex items-start gap-4">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1a0020,#6b21a8);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👩‍🎤</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1 flex-wrap">
+              <span class="type-badge" style="font-size:10px">🎤 Concert passé</span>
+              <span class="text-xs" style="color:var(--sub)">· il y a 1 semaine</span>
+            </div>
+            <h3 class="font-semibold text-sm mb-1.5">Taylor Swift Amsterdam — retour complet avec photos 📸 La setlist, l'ambiance, les surprises</h3>
+            <p class="text-xs mb-3" style="color:var(--sub);line-height:1.6">3h30 de concert non stop. Elle a joué "Treacherous" pour la première fois depuis 2013. J'ai pleuré. Voici mon retour complet avec setlist, recommandations place et tips pour la prochaine date.</p>
+            <div class="flex items-center gap-4 text-xs" style="color:var(--sub)">
+              <span>par <strong style="color:var(--text)">Léa K.</strong></span>
+              <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>52 réponses</span>
+              <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>203 j'aime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-4">
+
+      <!-- Stats -->
+      <div class="card-flat p-5">
+        <p class="label mb-4">La communauté</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="text-center p-3 rounded-xl" style="background:var(--accent-dim)">
+            <div class="text-xl font-bold accent" style="font-family:'Space Grotesk',sans-serif">12.4k</div>
+            <div class="text-xs mt-0.5" style="color:var(--sub)">membres</div>
+          </div>
+          <div class="text-center p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+            <div class="text-xl font-bold" style="font-family:'Space Grotesk',sans-serif">843</div>
+            <div class="text-xs mt-0.5" style="color:var(--sub)">discussions</div>
+          </div>
+          <div class="text-center p-3 rounded-xl" style="background:rgba(255,255,255,0.03)">
+            <div class="text-xl font-bold" style="font-family:'Space Grotesk',sans-serif">28</div>
+            <div class="text-xs mt-0.5" style="color:var(--sub)">actives ce soir</div>
+          </div>
+          <div class="text-center p-3 rounded-xl" style="background:rgba(74,222,128,0.06)">
+            <div class="text-xl font-bold" style="color:#4ade80;font-family:'Space Grotesk',sans-serif">94%</div>
+            <div class="text-xs mt-0.5" style="color:var(--sub)">satisfaits</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trending -->
+      <div class="card-flat p-5">
+        <p class="label mb-4">🔥 Sujets chauds</p>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3 cursor-pointer group">
+            <span class="text-lg">🎤</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-semibold group-hover:text-white transition-colors" style="color:var(--text)">Eras Tour Paris — zone Fosse ou Tribune ?</div>
+              <div class="text-xs" style="color:var(--sub)">138 réponses</div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border)"></div>
+          <div class="flex items-center gap-3 cursor-pointer group">
+            <span class="text-lg">⚽</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-semibold group-hover:text-white transition-colors" style="color:var(--text)">Hôtels à moins de 200€ près de Wembley ?</div>
+              <div class="text-xs" style="color:var(--sub)">67 réponses</div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border)"></div>
+          <div class="flex items-center gap-3 cursor-pointer group">
+            <span class="text-lg">🎪</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-semibold group-hover:text-white transition-colors" style="color:var(--text)">Glastonbury 2025 — les tips indispensables</div>
+              <div class="text-xs" style="color:var(--sub)">89 réponses</div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border)"></div>
+          <div class="flex items-center gap-3 cursor-pointer group">
+            <span class="text-lg">✈️</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-semibold group-hover:text-white transition-colors" style="color:var(--text)">Meilleur moment pour réserver un pack ?</div>
+              <div class="text-xs" style="color:var(--sub)">45 réponses</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA rejoindre -->
+      <div class="card-flat p-5 text-center" style="border-color:rgba(100,144,255,0.2);background:var(--accent-dim)">
+        <div style="font-size:28px;margin-bottom:10px">💬</div>
+        <h3 class="font-semibold text-sm mb-2">Rejoignez la communauté</h3>
+        <p class="text-xs mb-4" style="color:var(--sub);line-height:1.5">Partagez vos expériences et découvrez les bons plans des autres voyageurs.</p>
+        <button onclick="openAuth('signup')" class="btn-primary w-full py-2 text-xs">Créer mon compte gratuit</button>
+        <button onclick="openAuth('login')" class="btn-ghost w-full py-2 text-xs mt-2">J'ai déjà un compte</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════
+     CHECKOUT
+══════════════════════════════ -->
+<div id="page-checkout" class="page">
+<div style="background:var(--bg);min-height:100vh;padding-top:80px">
+  <div class="max-w-5xl mx-auto px-6 py-10 flex flex-col md:flex-row gap-8">
+
+    <div class="flex-1">
+      <h1 class="text-2xl font-bold mb-8" style="letter-spacing:-.02em">Finaliser ma réservation</h1>
+
+      <!-- Progress -->
+      <div class="flex items-center gap-2 mb-8">
+        <div class="step-num done">✓</div>
+        <span class="text-sm font-semibold accent">Pack créé</span>
+        <div style="flex:1;height:1.5px;background:rgba(100,144,255,0.3);border-radius:2px"></div>
+        <div class="step-num">2</div>
+        <span class="text-sm font-semibold">Coordonnées</span>
+        <div style="flex:1;height:1.5px;background:var(--border);border-radius:2px"></div>
+        <div class="step-num pending">3</div>
+        <span class="text-sm" style="color:var(--sub)">Paiement</span>
+      </div>
+
+      <div class="card-flat p-6 mb-4">
+        <p class="label mb-4">Coordonnées</p>
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="text-xs" style="color:var(--sub)">Prénom</label><input type="text" placeholder="Roland" class="ci mt-1"/></div>
+          <div><label class="text-xs" style="color:var(--sub)">Nom</label><input type="text" placeholder="Martin" class="ci mt-1"/></div>
+          <div class="col-span-2"><label class="text-xs" style="color:var(--sub)">Email</label><input type="email" placeholder="roland@example.com" class="ci mt-1"/></div>
+          <div class="col-span-2"><label class="text-xs" style="color:var(--sub)">Téléphone</label><input type="tel" placeholder="+33 6 00 00 00 00" class="ci mt-1"/></div>
+        </div>
+      </div>
+
+      <div class="card-flat p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <p class="label">Paiement sécurisé</p>
+          <span style="color:var(--sub)">💳 🍎 🅿️</span>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs" style="color:var(--sub)">Numéro de carte</label>
+            <div class="ci mt-1 flex items-center gap-2">
+              <svg class="w-4 h-4 flex-shrink-0" style="color:var(--sub)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <input style="background:transparent;border:none;outline:none;color:var(--text);font-family:inherit;font-size:14px;width:100%" placeholder="1234 5678 9012 3456"/>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="text-xs" style="color:var(--sub)">Expiration</label><input class="ci mt-1" placeholder="MM/AA"/></div>
+            <div><label class="text-xs" style="color:var(--sub)">CVV</label><input class="ci mt-1" placeholder="•••"/></div>
+          </div>
+        </div>
+        <p class="text-xs mt-3 flex items-center gap-1.5" style="color:var(--sub)">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Chiffrement SSL 256-bit · Powered by Stripe
+        </p>
+      </div>
+
+      <button class="btn-primary w-full py-3.5 font-semibold text-base" style="border-radius:12px">
+        Confirmer et payer <span id="co-tot">890 €</span>
+      </button>
+    </div>
+
+    <div class="md:w-72 flex-shrink-0">
+      <div class="card-flat p-5" style="position:sticky;top:80px;border-color:rgba(100,144,255,0.18)">
+        <p class="label mb-4">Récapitulatif</p>
+        <div class="rounded-xl p-3 mb-4" style="background:var(--accent-dim);border:1px solid rgba(100,144,255,0.15)">
+          <div class="font-semibold text-sm mb-0.5 accent">🎤 Taylor Swift — Eras Tour</div>
+          <div class="text-xs" style="color:var(--sub)">La Défense Arena · Paris · 15 Jul 2025</div>
+        </div>
+        <div class="space-y-2 mb-4 text-sm">
+          <div class="flex justify-between"><span style="color:var(--sub)">Billets ×<span id="co-p">2</span></span><span class="font-semibold" id="co-tk">298 €</span></div>
+          <div class="flex justify-between"><span style="color:var(--sub)">Transport ×<span id="co-p2">2</span></span><span class="font-semibold" id="co-tr">378 €</span></div>
+          <div class="flex justify-between"><span style="color:var(--sub)">Hôtel (1 nuit)</span><span class="font-semibold" id="co-h">185 €</span></div>
+          <div class="flex justify-between"><span style="color:var(--sub)">Frais de service</span><span style="color:var(--sub)">29 €</span></div>
+        </div>
+        <div style="height:1px;background:var(--border);margin:12px 0"></div>
+        <div class="flex justify-between items-center">
+          <span class="font-semibold">Total TTC</span>
+          <span class="text-xl font-bold accent" id="co-grand">890 €</span>
+        </div>
+        <div class="mt-4 rounded-xl p-3" style="background:rgba(74,222,128,0.07);border:1px solid rgba(74,222,128,0.18)">
+          <p class="text-xs font-semibold" style="color:#4ade80">✓ Annulation gratuite jusqu'au 1 juillet 2025</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+/* ── State ── */
+let group = 2;
+let prices = { ticket:149, transport:189, hotel:185, service:29 };
+let depCity = 'Lyon';
+const depData = {
+  'Lyon':       { vol:98,  train:89  },
+  'Marseille':  { vol:119, train:105 },
+  'Bordeaux':   { vol:129, train:0   },
+  'Toulouse':   { vol:125, train:110 },
+  'Nantes':     { vol:139, train:95  },
+  'Strasbourg': { vol:0,   train:62  },
+  'Bruxelles':  { vol:109, train:78  },
+  'Genève':     { vol:115, train:88  },
+};
+
+/* ── Navigation ── */
+function go(p){ document.querySelectorAll('.page').forEach(x=>x.classList.remove('on')); document.getElementById('page-'+p).classList.add('on'); window.scrollTo(0,0); }
+
+/* ── Tabs ── */
+const tabMeta = { artist:{l:'Artiste',ph:'Taylor Swift, Coldplay…'}, event:{l:'Événement',ph:'Champions League, Roland Garros…'}, city:{l:'Ville',ph:'Paris, Londres, Madrid…'} };
+function setTab(id){
+  ['artist','event','city'].forEach(t=>{ document.getElementById('t-'+t).className = t===id ? 'tab-on  px-4 py-2.5 text-sm rounded-t-lg flex items-center gap-1.5' : 'tab-off px-4 py-2.5 text-sm rounded-t-lg flex items-center gap-1.5'; });
+  document.getElementById('q-label').textContent = tabMeta[id].l;
+  document.getElementById('q-input').placeholder  = tabMeta[id].ph;
+}
+
+/* ── Group ── */
+function chg(d){
+  group = Math.max(1, Math.min(10, group+d));
+  document.getElementById('grp-n').textContent = group;
+  const rooms = group<=2?'1 chambre double':group<=3?'1 chambre triple':Math.ceil(group/2)+' chambres doubles';
+  document.getElementById('grp-l').textContent = group+' pers. · '+rooms;
+  const htl = document.getElementById('htl-info'); if(htl) htl.textContent = 'Pour '+group+' personne'+(group>1?'s':'')+' · '+rooms+' suggérée'+(Math.ceil(group/2)>1?'s':'');
+  const pp = document.getElementById('grp-pils'); if(pp){ pp.innerHTML=''; for(let i=0;i<group;i++){const d=document.createElement('div');d.textContent='👤';d.style.cssText='font-size:17px;animation:fadeUp .2s '+i*.04+'s ease both';pp.appendChild(d);} }
+  if(document.getElementById('pov-for')) document.getElementById('pov-for').textContent='pour '+group+' pers.';
+  if(document.getElementById('pov-tot')) document.getElementById('pov-tot').textContent=(prices.ticket*group)+' €';
+  updateTotal();
+}
+
+/* ── Departure ── */
+function setDep(city){
+  if(!city) return;
+  depCity = city;
+  const p = depData[city];
+  const el = document.getElementById('dep-info');
+  const pd = document.getElementById('dep-price');
+  if(p.vol>0){ if(pd) pd.textContent=p.vol+' €'; el.innerHTML='✈️ Vols '+city+' → Paris · ~1h15 · à partir de <strong class="accent" id="dep-price">'+p.vol+' €</strong> A/R'+(p.train>0?' · 🚄 TGV dès '+p.train+' €':''); prices.transport=p.vol; }
+  else { el.innerHTML='🚄 TGV '+city+' → Paris · à partir de <strong class="accent">'+p.train+' €</strong> A/R (pas de vol direct)'; prices.transport=p.train; }
+  const td = document.getElementById('tsp-dep'); if(td) td.textContent=city;
+  updateTotal(); renderTransport('vol');
+}
+
+/* ── Total ── */
+function updateTotal(){
+  const nights = Math.ceil(group/2);
+  const tot = (prices.ticket*group)+(prices.transport*group)+(prices.hotel*nights)+prices.service;
+  const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  s('sb-t',(prices.ticket*group)+' €'); s('sb-tr',(prices.transport*group)+' €'); s('sb-h',(prices.hotel*nights)+' €');
+  s('sb-p','×'+group); s('sb-p2','×'+group);
+  s('sb-n','('+nights+' nuit'+(nights>1?'s':'')+')');
+  s('sb-desc','Pour '+group+' personne'+(group>1?'s':'')+' · '+nights+' nuit'+(nights>1?'s':''));
+  s('co-tk',(prices.ticket*group)+' €'); s('co-tr',(prices.transport*group)+' €'); s('co-h',(prices.hotel*nights)+' €');
+  s('co-p',group); s('co-p2',group); s('co-tot',tot+' €'); s('co-grand',tot+' €');
+  const el=document.getElementById('sb-tot'); if(el){el.textContent=tot+' €';el.style.transform='scale(1.08)';setTimeout(()=>el.style.transform='',180);}
+}
+
+/* ── Step toggle ── */
+function toggleStep(n){
+  const sc=document.getElementById('sc'+n), sa=document.getElementById('sa'+n), sw=document.getElementById('sw'+n), sn=document.getElementById('sn'+n);
+  const open=sc.classList.contains('hidden');
+  sc.classList.toggle('hidden'); sw.classList.toggle('open',open); sa.style.transform=open?'rotate(180deg)':'';
+  if(open&&sn.classList.contains('pending')){ sn.classList.remove('pending'); }
+  if(n===2) renderTransport('vol');
+}
+
+/* ── Confirm info ── */
+function confirmInfo(){
+  document.getElementById('info-summary').textContent = group+' pers. · départ '+depCity;
+  const sn=document.getElementById('sn0'); sn.className='step-num done'; sn.textContent='✓';
+  document.getElementById('sc0').classList.add('hidden');
+  document.getElementById('sw0').classList.remove('open');
+  document.getElementById('sa0').style.transform='';
+  toggleStep(1);
+}
+
+/* ── Venue map ── */
+const zones={
+  fosse: {name:'Fosse',desc:'Vue directe scène — Debout · Zone A',price:149,img:'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=600&q=80'},
+  nord:  {name:'Tribune Nord',desc:'Vue frontale surélevée',price:99,img:'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&q=80'},
+  ouest: {name:'Tribune Ouest',desc:'Vue latérale · scène gauche',price:119,img:'https://images.unsplash.com/photo-1540039155733-5bb30b631f91?w=600&q=80'},
+  est:   {name:'Tribune Est',desc:'Vue latérale · scène droite',price:119,img:'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&q=80'},
+  vip:   {name:'Carré d\'Or VIP',desc:'Vue premium face scène · Meet & Greet',price:299,img:'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&q=80'},
+  balcon:{name:'Balcon',desc:'Vue panoramique depuis le haut',price:69,img:'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=600&q=80'},
+};
+function pickZone(id){
+  document.querySelectorAll('.vzone').forEach(z=>z.classList.remove('sel'));
+  document.getElementById('vz-'+id)?.classList.add('sel');
+  const z=zones[id]; prices.ticket=z.price;
+  document.getElementById('pov-empty').classList.add('hidden');
+  document.getElementById('pov-filled').classList.remove('hidden');
+  document.getElementById('pov-img').src=z.img;
+  document.getElementById('pov-name').textContent=z.name;
+  document.getElementById('pov-desc').textContent=z.desc;
+  document.getElementById('pov-pp').textContent=z.price+' €';
+  document.getElementById('pov-tot').textContent=(z.price*group)+' €';
+  document.getElementById('pov-for').textContent='pour '+group+' pers.';
+  updateTotal();
+}
+function confirmZone(){
+  const z=Object.values(zones).find(x=>x.price===prices.ticket);
+  document.getElementById('seat-sum').textContent='— '+z.name+' · '+z.price+' €/pers.';
+  document.getElementById('sn1').className='step-num done'; document.getElementById('sn1').textContent='✓';
+  document.getElementById('sc1').classList.add('hidden'); document.getElementById('sw1').classList.remove('open'); document.getElementById('sa1').style.transform='';
+  toggleStep(2);
+}
+
+/* ── Transport ── */
+function renderTransport(mode){
+  const p=depData[depCity]||{vol:98,train:89};
+  const el=document.getElementById('tsp-opts'); if(!el) return;
+  if(mode==='vol'){
+    if(!p.vol){el.innerHTML='<p class="text-sm py-4 text-center" style="color:var(--sub)">Pas de vol direct depuis '+depCity+' — essayez le train 🚄</p>';return;}
+    el.innerHTML=`
+      <div class="opt sel" onclick="pickT(this,'Air France · direct',${p.vol})">
+        <div class="flex items-center gap-3"><span class="text-xl">✈️</span><div><div class="font-semibold text-sm">Air France · direct</div><div class="text-xs" style="color:var(--sub)">${depCity} → Paris · ~1h15 · A/R</div></div></div>
+        <div class="text-right"><div class="font-bold accent">${p.vol} €</div><div class="text-xs" style="color:var(--sub)">par pers.</div></div>
+      </div>
+      <div class="opt" onclick="pickT(this,'easyJet / Transavia',${Math.round(p.vol*.78)})">
+        <div class="flex items-center gap-3"><span class="text-xl">✈️</span><div><div class="font-semibold text-sm">easyJet / Transavia</div><div class="text-xs" style="color:var(--sub)">${depCity} → CDG ou Orly · A/R</div></div></div>
+        <div class="text-right"><div class="font-bold">${Math.round(p.vol*.78)} €</div><div class="text-xs" style="color:var(--sub)">par pers.</div></div>
+      </div>`;
+  } else {
+    if(!p.train){el.innerHTML='<p class="text-sm py-4 text-center" style="color:var(--sub)">Pas de train direct depuis '+depCity+' — essayez le vol ✈️</p>';return;}
+    el.innerHTML=`
+      <div class="opt sel" onclick="pickT(this,'TGV direct',${p.train})">
+        <div class="flex items-center gap-3"><span class="text-xl">🚄</span><div><div class="font-semibold text-sm">TGV · direct</div><div class="text-xs" style="color:var(--sub)">${depCity} → Paris · A/R</div></div></div>
+        <div class="text-right"><div class="font-bold accent">${p.train} €</div><div class="text-xs" style="color:var(--sub)">par pers.</div></div>
+      </div>
+      <div class="opt" onclick="pickT(this,'Intercités',${Math.round(p.train*.82)})">
+        <div class="flex items-center gap-3"><span class="text-xl">🚄</span><div><div class="font-semibold text-sm">Intercités · avec arrêts</div><div class="text-xs" style="color:var(--sub)">${depCity} → Paris · +30 min · A/R</div></div></div>
+        <div class="text-right"><div class="font-bold">${Math.round(p.train*.82)} €</div><div class="text-xs" style="color:var(--sub)">par pers.</div></div>
+      </div>`;
+  }
+}
+function setMode(m){
+  document.getElementById('tm-vol').className  = m==='vol'   ? 'btn-outline px-4 py-1.5 text-xs font-semibold' : 'btn-ghost px-4 py-1.5 text-xs font-semibold';
+  document.getElementById('tm-train').className = m==='train' ? 'btn-outline px-4 py-1.5 text-xs font-semibold' : 'btn-ghost px-4 py-1.5 text-xs font-semibold';
+  renderTransport(m);
+}
+function pickT(el,name,price){
+  document.querySelectorAll('#tsp-opts .opt').forEach(o=>o.classList.remove('sel')); el.classList.add('sel');
+  prices.transport=price; document.getElementById('tsp-sum').textContent='— '+name+' · '+price+' €/pers.'; updateTotal();
+}
+function pickH(el,name,price){
+  document.querySelectorAll('#sc3 .opt').forEach(o=>o.classList.remove('sel')); el.classList.add('sel');
+  prices.hotel=price; document.getElementById('htl-sum').textContent='— '+name; updateTotal();
+}
+
+/* ── Auth modal ── */
+function openAuth(tab){
+  document.getElementById('auth-modal').style.display='block';
+  switchAuth(tab||'login');
+}
+function closeAuth(){
+  document.getElementById('auth-modal').style.display='none';
+}
+function switchAuth(tab){
+  const isLogin=tab==='login';
+  document.getElementById('auth-login').style.display=isLogin?'block':'none';
+  document.getElementById('auth-signup').style.display=isLogin?'none':'block';
+  document.getElementById('auth-tab-login').style.cssText=isLogin?'color:var(--accent);border-bottom:2px solid var(--accent)':'color:var(--sub);border-bottom:2px solid transparent';
+  document.getElementById('auth-tab-signup').style.cssText=isLogin?'color:var(--sub);border-bottom:2px solid transparent':'color:var(--accent);border-bottom:2px solid var(--accent)';
+}
+
+/* ── Tour filter ── */
+function filterTour(cat){
+  ['all','concert','sport','festival'].forEach(c=>{
+    const el=document.getElementById('ft-'+c);
+    if(el) el.className=c===cat?'btn-outline px-4 py-1.5 text-xs font-semibold':'btn-ghost px-4 py-1.5 text-xs font-semibold';
+  });
+}
+
+/* ── Tour dates ── */
+const tours=[
+  {d:'Mar 15',c:'Amsterdam',v:'Ziggo Dome',f:'🇳🇱',s:'ok',p:344},
+  {d:'Mar 22',c:'Paris',v:'La Défense Arena',f:'🇫🇷',s:'warn',p:389},
+  {d:'Mar 29',c:'Londres',v:'O2 Arena',f:'🇬🇧',s:'ok',p:412},
+  {d:'Avr 05',c:'Berlin',v:'Mercedes-Benz Arena',f:'🇩🇪',s:'ok',p:298},
+  {d:'Avr 12',c:'Madrid',v:'WiZink Center',f:'🇪🇸',s:'warn',p:355},
+  {d:'Avr 19',c:'Barcelone',v:'Palau Sant Jordi',f:'🇪🇸',s:'full',p:0},
+  {d:'Avr 26',c:'Milan',v:'Mediolanum Forum',f:'🇮🇹',s:'ok',p:320},
+  {d:'Mai 03',c:'Vienne',v:'Wiener Stadthalle',f:'🇦🇹',s:'ok',p:310},
+  {d:'Mai 10',c:'Zurich',v:'Hallenstadion',f:'🇨🇭',s:'warn',p:399},
+  {d:'Mai 17',c:'Bruxelles',v:'Forest National',f:'🇧🇪',s:'full',p:0},
+  {d:'Mai 24',c:'Stockholm',v:'Tele2 Arena',f:'🇸🇪',s:'ok',p:385},
+  {d:'Mai 31',c:'Copenhague',v:'Royal Arena',f:'🇩🇰',s:'ok',p:370},
+];
+const pm={ok:'pill-ok',warn:'pill-warn',full:'pill-full'};
+const lm={ok:'Disponible',warn:'Dernières places',full:'Complet'};
+
+function buildTours(){
+  const c=document.getElementById('tour-list'); if(!c) return;
+  c.innerHTML=tours.map((t,i)=>`
+    <div class="tour-row ${t.s==='full'?'disabled':''}" style="animation:fadeUp .35s ${i*.04}s ease both" ${t.s!=='full'?'onclick="go(\'event\')"':''}>
+      <div class="date-chip"><div class="text-xs font-semibold accent">${t.d}</div></div>
+      <div class="text-xl">${t.f}</div>
+      <div class="flex-1">
+        <div class="font-semibold text-sm">${t.c}</div>
+        <div class="text-xs" style="color:var(--sub)">${t.v}</div>
+      </div>
+      <span class="pill ${pm[t.s]} hidden md:inline-flex">${lm[t.s]}</span>
+      ${t.s!=='full'
+        ?`<span class="font-semibold text-sm accent">dès ${t.p} €</span>
+          <button class="btn-outline px-3 py-1.5 text-xs font-semibold" style="white-space:nowrap">Pack →</button>`
+        :`<span class="text-xs" style="color:var(--sub)">—</span>`}
+    </div>`).join('');
+}
+
+/* ════════════════════════════════════════════════
+   API CONFIGURATION
+   ════════════════════════════════════════════════
+   Ticketmaster (gratuit) → developer.ticketmaster.com
+   Amadeus sandbox (gratuit) → developers.amadeus.com
+   MusicBrainz → AUCUNE CLÉ REQUISE (fonctionne immédiatement)
+   ════════════════════════════════════════════════ */
+const API = {
+  tm:        '',   // Ticketmaster API key (gratuit, pas de CB)
+  am:        '',   // Amadeus Client ID    (gratuit, pas de CB)
+  am_secret: '',   // Amadeus Client Secret
+  am_token:  '',   // généré automatiquement
+};
+
+function setApiKey(k,v){ API[k]=v.trim(); }
+
+async function applyKeys(){
+  showApiStatus('⏳ Connexion aux APIs…');
+  const tasks=[];
+  if(API.tm) tasks.push(loadTMEvents());
+  if(API.am && API.am_secret) tasks.push(getAmadeusToken().then(()=>refreshTransport()));
+  if(!tasks.length){ showApiStatus('⚠️ Entrez au moins une clé API'); return; }
+  await Promise.allSettled(tasks);
+}
+
+function showApiStatus(msg,ok=false){
+  const s=document.getElementById('api-status');
+  const m=document.getElementById('api-status-msg');
+  if(!s||!m) return;
+  s.style.display='block';
+  m.style.color=ok?'#4ade80':'var(--sub)';
+  m.textContent=msg;
+}
+
+/* ─── TICKETMASTER ─── */
+const TM_BASE = 'https://app.ticketmaster.com/discovery/v2';
+
+async function loadTMEvents(){
+  try {
+    const url = `${TM_BASE}/events.json?apikey=${API.tm}&locale=*&classificationName=music,sports&size=8&sort=date,asc&countryCode=FR,GB,ES,DE,IT,BE,NL`;
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('TM HTTP '+r.status);
+    const data = await r.json();
+    const events = data._embedded?.events || [];
+    renderEventCards(events);
+    showApiStatus(`✅ Ticketmaster : ${events.length} événements chargés`, true);
+  } catch(e) {
+    showApiStatus('❌ Ticketmaster : ' + e.message);
+    renderDemoEvents(); // fallback
+  }
+}
+
+async function loadTMTours(keyword){
+  const c = document.getElementById('tour-list');
+  if(!c) return;
+  c.innerHTML = '<div class="py-6 text-center text-sm" style="color:var(--sub)">⏳ Chargement des dates…</div>';
+  try {
+    const url = `${TM_BASE}/events.json?apikey=${API.tm}&keyword=${encodeURIComponent(keyword)}&classificationName=music&size=20&sort=date,asc`;
+    const r = await fetch(url);
+    const data = await r.json();
+    const events = data._embedded?.events || [];
+    renderTourDates(events);
+  } catch(e) {
+    buildTours(); // fallback static
+  }
+}
+
+function renderEventCards(events){
+  const container = document.getElementById('events-swipe');
+  const hint = document.getElementById('swipe-hint');
+  const gradients = [
+    'linear-gradient(135deg,#1e0b35,#4c1d95)',
+    'linear-gradient(135deg,#0a1535,#1e3a8a)',
+    'linear-gradient(135deg,#1f0808,#7f1d1d)',
+    'linear-gradient(135deg,#1c1005,#92400e)',
+    'linear-gradient(135deg,#031a0e,#14532d)',
+    'linear-gradient(135deg,#1a0020,#6b21a8)',
+  ];
+  const emojis = {'music':'🎤','sports':'⚽','arts':'🎭','miscellaneous':'🎪'};
+
+  const cards = events.map((ev, i) => {
+    const seg = ev.classifications?.[0]?.segment?.name?.toLowerCase() || 'music';
+    const emoji = emojis[seg] || '🎤';
+    const type = ev.classifications?.[0]?.segment?.name || 'Concert';
+    const venue = ev._embedded?.venues?.[0];
+    const venueName = venue?.name || '';
+    const city = venue?.city?.name || '';
+    const country = venue?.country?.countryCode || '';
+    const dateStr = ev.dates?.start?.localDate || '';
+    const dateFormatted = dateStr ? new Date(dateStr).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '';
+    const img = ev.images?.find(x=>x.ratio==='16_9'&&x.width>500)?.url || '';
+    const minPrice = ev.priceRanges?.[0]?.min;
+    const priceLabel = minPrice ? `dès ${Math.round(minPrice)} €` : 'Prix sur demande';
+    const avail = ev.dates?.status?.code;
+    const pillClass = avail==='offsale'||avail==='cancelled' ? 'pill-full' : (avail==='rescheduled'?'pill-warn':'pill-ok');
+    const pillLabel = avail==='offsale'?'Complet':avail==='cancelled'?'Annulé':avail==='rescheduled'?'Reporté':'Disponible';
+
+    const bgStyle = img
+      ? `background:url('${img}') center/cover;filter:brightness(.35)`
+      : `background:${gradients[i%gradients.length]}`;
+
+    return `<div class="snap card overflow-hidden flex-shrink-0 cursor-pointer" style="min-width:262px;animation:fadeUp .4s ${i*.05}s ease both;opacity:0" onclick="loadEventDetail(${JSON.stringify(ev.name).replace(/'/g,"&#39;")})">
+      <div style="height:158px;position:relative;display:flex;align-items:center;justify-content:center;font-size:48px">
+        <div style="position:absolute;inset:0;${bgStyle}"></div>
+        ${img?'':'<span style="position:relative;z-index:1">'+emoji+'</span>'}
+        <div style="position:absolute;top:10px;left:10px;z-index:2"><span class="type-badge">${type}</span></div>
+        <div class="img-price" style="z-index:2">${priceLabel}</div>
+        <div style="position:absolute;bottom:0;left:0;right:0;height:48px;background:linear-gradient(to top,var(--card),transparent);z-index:1"></div>
+      </div>
+      <div class="p-4">
+        <h3 class="font-semibold text-sm mb-1" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ev.name}</h3>
+        <p class="text-xs mb-3" style="color:var(--sub)">📍 ${venueName}${city?' · '+city:''}${dateFormatted?' · '+dateFormatted:''}</p>
+        <div class="flex items-center justify-between">
+          <span class="pill ${pillClass}">${pillLabel}</span>
+          <button class="text-xs font-semibold accent">Créer un pack →</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // remove skeletons, inject real cards
+  container.innerHTML = cards || '<div class="snap" style="min-width:262px;padding:40px;text-align:center;color:var(--sub);font-size:14px">Aucun événement trouvé</div>';
+  if(hint) hint.textContent = 'Glisser pour voir plus · Source : Ticketmaster';
+}
+
+function renderTourDates(events){
+  const c = document.getElementById('tour-list');
+  if(!c||!events.length){ buildTours(); return; }
+  const pm = {ok:'pill-ok',warn:'pill-warn',full:'pill-full'};
+  c.innerHTML = events.map((ev,i)=>{
+    const venue = ev._embedded?.venues?.[0];
+    const city  = venue?.city?.name||'';
+    const vname = venue?.name||'';
+    const country = venue?.country?.countryCode||'';
+    const flags = {FR:'🇫🇷',GB:'🇬🇧',DE:'🇩🇪',ES:'🇪🇸',IT:'🇮🇹',BE:'🇧🇪',NL:'🇳🇱',AT:'🇦🇹',CH:'🇨🇭',SE:'🇸🇪',DK:'🇩🇰',PT:'🇵🇹'};
+    const flag = flags[country]||'🌍';
+    const dateStr = ev.dates?.start?.localDate||'';
+    const d = dateStr ? new Date(dateStr) : null;
+    const dLabel = d ? d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '—';
+    const avail = ev.dates?.status?.code;
+    const isFull = avail==='offsale'||avail==='cancelled';
+    const pillCls = isFull?'pill-full':(avail==='rescheduled'?'pill-warn':'pill-ok');
+    const pillTxt = isFull?'Complet':avail==='rescheduled'?'Reporté':'Disponible';
+    const minPrice = ev.priceRanges?.[0]?.min;
+    const pLabel = minPrice ? `dès ${Math.round(minPrice)} €` : '— €';
+    return `<div class="tour-row ${isFull?'disabled':''}" style="animation:fadeUp .35s ${i*.04}s ease both" ${!isFull?'onclick="go(\'event\')"':''}>
+      <div class="date-chip"><div class="text-xs font-semibold accent">${dLabel}</div></div>
+      <div class="text-xl">${flag}</div>
+      <div class="flex-1">
+        <div class="font-semibold text-sm">${city}</div>
+        <div class="text-xs" style="color:var(--sub)">${vname}</div>
+      </div>
+      <span class="pill ${pillCls} hidden md:inline-flex">${pillTxt}</span>
+      ${!isFull?`<span class="font-semibold text-sm accent">${pLabel}</span><button class="btn-outline px-3 py-1.5 text-xs font-semibold" style="white-space:nowrap">Pack →</button>`:`<span class="text-xs" style="color:var(--sub)">—</span>`}
+    </div>`;
+  }).join('');
+}
+
+function loadEventDetail(name){
+  // Update event detail page title with clicked event name
+  const h = document.querySelector('#page-event h1');
+  if(h) h.textContent = name;
+  go('event');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUTOCOMPLETE — MusicBrainz (GRATUIT · AUCUNE CLÉ REQUISE)
+   Fallback : Ticketmaster si clé présente
+   ═══════════════════════════════════════════════════════════ */
+const MB_BASE = 'https://musicbrainz.org/ws/2';
+let acTimer=null, acResults=[], acIdx=-1;
+
+function onSearchInput(val){
+  clearTimeout(acTimer);
+  if(!val||val.length<2){ closeAutocomplete(); return; }
+  acTimer=setTimeout(()=>fetchSuggestions(val), 280);
+}
+function onSearchKey(e){
+  const items=document.querySelectorAll('#autocomplete-list .ac-item');
+  if(e.key==='ArrowDown'){ e.preventDefault(); acIdx=Math.min(acIdx+1,items.length-1); highlightAc(items); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); acIdx=Math.max(acIdx-1,0); highlightAc(items); }
+  else if(e.key==='Enter'){ e.preventDefault(); if(acIdx>=0&&items[acIdx]) selectAc(acResults[acIdx]); else startSearch(); }
+  else if(e.key==='Escape') closeAutocomplete();
+}
+function highlightAc(items){ items.forEach((el,i)=>el.classList.toggle('ac-active',i===acIdx)); }
+
+async function fetchSuggestions(q){
+  const box=document.getElementById('autocomplete-box');
+  const list=document.getElementById('autocomplete-list');
+  list.innerHTML='<div class="px-4 py-3 text-xs" style="color:var(--sub)">🔍 Recherche en cours…</div>';
+  box.style.display='block';
+
+  // 1. Si clé Ticketmaster → utiliser leur autocomplete (photos artistes)
+  if(API.tm){
+    try{
+      const url=`${TM_BASE}/attractions.json?apikey=${API.tm}&keyword=${encodeURIComponent(q)}&size=6&locale=*`;
+      const r=await fetch(url);
+      if(r.ok){
+        const data=await r.json();
+        const items=data._embedded?.attractions||[];
+        if(items.length){ acResults=items.map(it=>({
+          name:it.name,
+          mbid:null,
+          type:'tm',
+          genre:it.classifications?.[0]?.genre?.name||'',
+          img:it.images?.find(x=>x.ratio==='1_1')?.url||'',
+          raw:it
+        }));
+        renderAcList(acResults,q); return; }
+      }
+    }catch(e){}
+  }
+
+  // 2. MusicBrainz — GRATUIT, aucune clé, fonctionne immédiatement
+  try{
+    const url=`${MB_BASE}/artist/?query=${encodeURIComponent(q)}&limit=7&fmt=json`;
+    const r=await fetch(url,{headers:{'User-Agent':'Eventrip/1.0 (prototype)'}});
+    if(!r.ok) throw new Error('MB '+r.status);
+    const data=await r.json();
+    const artists=data.artists||[];
+    acResults=artists.map(a=>({
+      name:a.name,
+      mbid:a.id,
+      type:'mb',
+      genre:a.tags?.[0]?.name||a.type||'',
+      country:a.country||'',
+      disambiguation:a.disambiguation||'',
+      img:''
+    }));
+    renderAcList(acResults,q);
+  }catch(e){
+    // Dernier fallback statique
+    const fallback=[
+      {name:'Taylor Swift',type:'mb',genre:'Pop',country:'US',mbid:'20244d07-534f-4eff-b4d4-930878889970'},
+      {name:'Coldplay',type:'mb',genre:'Rock',country:'GB',mbid:'cc197bad-dc9c-440d-a5b5-d52ba2e14234'},
+      {name:'Beyoncé',type:'mb',genre:'R&B',country:'US',mbid:'859d0860-d480-4efd-970c-c05d5f1776b8'},
+      {name:'The Weeknd',type:'mb',genre:'R&B',country:'CA',mbid:'8f9184a3-2b40-4e36-bddb-9d8de9d3ef5b'},
+      {name:'Ed Sheeran',type:'mb',genre:'Pop',country:'GB',mbid:'b8a7c51f-362c-4dcb-a259-bc6e0095f0a6'},
+      {name:'Billie Eilish',type:'mb',genre:'Alternative',country:'US',mbid:'f4abc0b5-3f7a-4eff-8f78-ac078dbce533'},
+      {name:'Dua Lipa',type:'mb',genre:'Pop',country:'GB',mbid:'6f1a58bf-9b1b-49cf-a44a-6cefad7ae04f'},
+      {name:'Drake',type:'mb',genre:'Hip-Hop',country:'CA',mbid:'b49b81cc-d79b-4595-8851-650a72d5fa10'},
+      {name:'Bad Bunny',type:'mb',genre:'Reggaeton',country:'PR',mbid:'f0e5a3f9-21f9-4a25-a6d3-5a7f99c8a26f'},
+      {name:'Harry Styles',type:'mb',genre:'Pop',country:'GB',mbid:'e8f7d2a8-7f54-4c47-84fd-77b4a1c9e21a'},
+      {name:'Bruno Mars',type:'mb',genre:'Pop/R&B',country:'US',mbid:'5f31d5d2-f34a-4d5f-8fc7-1c5d5e8e4be9'},
+      {name:'Kendrick Lamar',type:'mb',genre:'Hip-Hop',country:'US',mbid:'381086ea-f511-4aba-bdf9-71c753dc5077'},
+    ].filter(x=>x.name.toLowerCase().includes(q.toLowerCase()));
+    acResults=fallback;
+    renderAcList(fallback.slice(0,5),q);
+  }
+}
+
+function renderAcList(items,q){
+  const list=document.getElementById('autocomplete-list');
+  const box=document.getElementById('autocomplete-box');
+  acIdx=-1;
+  const countryFlag={US:'🇺🇸',GB:'🇬🇧',FR:'🇫🇷',DE:'🇩🇪',CA:'🇨🇦',AU:'🇦🇺',ES:'🇪🇸',IT:'🇮🇹',PR:'🇵🇷',NL:'🇳🇱',BE:'🇧🇪',SE:'🇸🇪'};
+  if(!items.length){
+    list.innerHTML=`<div class="px-4 py-3 text-xs" style="color:var(--sub)">Aucun résultat pour « ${q} »</div>`;
+    box.style.display='block'; return;
+  }
+  const safeQ=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  list.innerHTML=items.slice(0,6).map((it,i)=>{
+    const name=it.name;
+    const genre=it.genre||'';
+    const flag=it.country?countryFlag[it.country]||'🌍':'';
+    const bold=name.replace(new RegExp('('+safeQ+')','gi'),'<strong style="color:var(--text)">$1</strong>');
+    const thumb=it.img
+      ?`<img src="${it.img}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0"/>`
+      :`<div style="width:34px;height:34px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${flag||'🎤'}</div>`;
+    const sub=[genre,it.disambiguation].filter(Boolean).join(' · ');
+    return `<div class="ac-item" style="display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--border)"
+      onmouseenter="acIdx=${i};highlightAc(document.querySelectorAll('#autocomplete-list .ac-item'))"
+      onclick="selectAc(acResults[${i}])">
+      ${thumb}
+      <div style="flex:1;min-width:0">
+        <div class="text-sm font-medium" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${bold}</div>
+        ${sub?`<div class="text-xs" style="color:var(--sub)">${sub}</div>`:''}
+      </div>
+      <svg class="w-4 h-4" style="color:var(--sub);flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+    </div>`;
+  }).join('')+`<div style="padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+    <span class="text-xs" style="color:rgba(232,236,248,0.25)">via MusicBrainz${API.tm?' + Ticketmaster':''}</span>
+    <button class="text-xs accent font-semibold" onclick="startSearch()">Voir tous les résultats →</button>
+  </div>`;
+  box.style.display='block';
+}
+
+async function selectAc(item){
+  if(!item) return;
+  document.getElementById('q-input').value=item.name;
+  closeAutocomplete();
+  // Mettre à jour le panneau artiste
+  const h2=document.querySelector('#page-search h2');
+  if(h2) h2.textContent=item.name;
+  // Charger les événements pour cet artiste
+  if(API.tm) await loadTMTours(item.name);
+  else await loadMBEvents(item.name, item.mbid);
+  go('search');
+}
+
+async function startSearch(){
+  const q=document.getElementById('q-input').value.trim();
+  closeAutocomplete();
+  if(!q) return;
+  const h2=document.querySelector('#page-search h2');
+  if(h2) h2.textContent=q;
+  if(API.tm) await loadTMTours(q);
+  else await loadMBEvents(q,null);
+  go('search');
+}
+
+function closeAutocomplete(){
+  document.getElementById('autocomplete-box').style.display='none';
+  acIdx=-1;
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#q-input')&&!e.target.closest('#autocomplete-box')) closeAutocomplete();
+});
+
+/* ═══════════════════════════════════════════════════════════
+   MUSICBRAINZ EVENTS — Concerts réels, GRATUIT, aucune clé
+   ═══════════════════════════════════════════════════════════ */
+async function loadMBEvents(artistName, mbid){
+  const c=document.getElementById('tour-list');
+  if(!c) return;
+  c.innerHTML='<div class="py-6 text-center text-sm" style="color:var(--sub)">⏳ Chargement via MusicBrainz…</div>';
+
+  try{
+    // D'abord retrouver le MBID si pas fourni
+    let aid=mbid;
+    if(!aid){
+      const r=await fetch(`${MB_BASE}/artist/?query=${encodeURIComponent(artistName)}&limit=1&fmt=json`,
+        {headers:{'User-Agent':'Eventrip/1.0'}});
+      const d=await r.json();
+      aid=d.artists?.[0]?.id;
+    }
+    if(!aid){ buildTours(); return; }
+
+    // Récupérer les événements liés à cet artiste
+    const r2=await fetch(`${MB_BASE}/event/?artist=${aid}&limit=25&fmt=json`,
+      {headers:{'User-Agent':'Eventrip/1.0'}});
+    if(!r2.ok) throw new Error('MB events '+r2.status);
+    const d2=await r2.json();
+    const events=d2.events||[];
+
+    // Filtrer les événements à venir ou récents
+    const now=new Date();
+    const upcoming=events
+      .filter(ev=>ev['life-span']?.begin && new Date(ev['life-span'].begin)>=new Date(now.getTime()-30*86400000))
+      .sort((a,b)=>new Date(a['life-span']?.begin)-new Date(b['life-span']?.begin))
+      .slice(0,15);
+
+    if(!upcoming.length){ buildTours(); return; }
+
+    const flags={FR:'🇫🇷',GB:'🇬🇧',DE:'🇩🇪',ES:'🇪🇸',IT:'🇮🇹',BE:'🇧🇪',NL:'🇳🇱',AT:'🇦🇹',CH:'🇨🇭',SE:'🇸🇪',DK:'🇩🇰',PT:'🇵🇹',US:'🇺🇸',CA:'🇨🇦',AU:'🇦🇺'};
+
+    c.innerHTML=upcoming.map((ev,i)=>{
+      const dateStr=ev['life-span']?.begin||'';
+      const d=dateStr?new Date(dateStr):null;
+      const dLabel=d?d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'—';
+      const place=ev.relations?.find(r=>r.type==='held at');
+      const city=ev.place?.name||ev.name||'';
+      const vname=place?.place?.name||'';
+      const country=place?.place?.area?.['iso-3166-1-codes']?.[0]||'';
+      const flag=flags[country]||'🌍';
+      const cancelled=ev.cancelled;
+      const pillCls=cancelled?'pill-full':'pill-ok';
+      const pillTxt=cancelled?'Annulé':'Disponible';
+      return `<div class="tour-row ${cancelled?'disabled':''}" style="animation:fadeUp .35s ${i*.04}s ease both" ${!cancelled?'onclick="go(\'event\')"':''}>
+        <div class="date-chip"><div class="text-xs font-semibold accent">${dLabel}</div></div>
+        <div class="text-xl">${flag}</div>
+        <div class="flex-1">
+          <div class="font-semibold text-sm">${city||ev.name}</div>
+          <div class="text-xs" style="color:var(--sub)">${vname||'Concert'}</div>
+        </div>
+        <span class="pill ${pillCls} hidden md:inline-flex">${pillTxt}</span>
+        ${!cancelled?`<button class="btn-outline px-3 py-1.5 text-xs font-semibold" style="white-space:nowrap">Pack →</button>`:`<span class="text-xs" style="color:var(--sub)">—</span>`}
+      </div>`;
+    }).join('')+`<div class="py-3 text-center text-xs" style="color:rgba(232,236,248,0.3)">Source : MusicBrainz — données communautaires libres</div>`;
+  }catch(e){
+    buildTours();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AMADEUS SANDBOX — Transport & Hôtels (GRATUIT)
+   Inscription : developers.amadeus.com → Self-Service (gratuit, pas de CB)
+   ═══════════════════════════════════════════════════════════ */
+const AM_BASE='https://test.api.amadeus.com';
+
+// Mapping ville de départ → IATA code aéroport
+const IATA={
+  'Lyon':'LYS','Marseille':'MRS','Bordeaux':'BOD','Toulouse':'TLS',
+  'Nantes':'NTE','Strasbourg':'SXB','Bruxelles':'BRU','Genève':'GVA',
+  'Paris':'CDG','Londres':'LHR','Amsterdam':'AMS','Berlin':'BER',
+  'Madrid':'MAD','Rome':'FCO','Milan':'MXP'
+};
+
+async function getAmadeusToken(){
+  try{
+    const body=new URLSearchParams({
+      grant_type:'client_credentials',
+      client_id:API.am,
+      client_secret:API.am_secret
+    });
+    const r=await fetch(`${AM_BASE}/v1/security/oauth2/token`,{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body
+    });
+    if(!r.ok) throw new Error('Amadeus auth HTTP '+r.status);
+    const data=await r.json();
+    API.am_token=data.access_token;
+    // Renouveler le token 55 min après (expire en 1h)
+    setTimeout(getAmadeusToken, 55*60*1000);
+    showApiStatus('✅ Amadeus connecté · Transport & hôtels en temps réel',true);
+    return true;
+  }catch(e){
+    showApiStatus('❌ Amadeus : '+e.message);
+    return false;
+  }
+}
+
+async function refreshTransport(){
+  // Appelé après login Amadeus pour afficher les vrais prix
+  const mode=document.getElementById('tm-vol')?.classList.contains('btn-outline')?'vol':'train';
+  await renderTransportReal(mode);
+}
+
+// Vols Amadeus — prix en temps réel
+async function fetchAmadeusFlights(originCity, destIATA, date, adults=1){
+  if(!API.am_token) return null;
+  const origin=IATA[originCity]||'LYS';
+  if(!origin||!destIATA) return null;
+  try{
+    const url=`${AM_BASE}/v2/shopping/flight-offers?originLocationCode=${origin}&destinationLocationCode=${destIATA}&departureDate=${date}&adults=${adults}&max=5&currencyCode=EUR&nonStop=false`;
+    const r=await fetch(url,{headers:{Authorization:'Bearer '+API.am_token}});
+    if(!r.ok) return null;
+    return await r.json();
+  }catch(){ return null; }
+}
+
+// Hôtels Amadeus — disponibilités & prix
+async function fetchAmadeusHotels(cityCode, checkIn, nights=2, guests=1){
+  if(!API.am_token) return null;
+  try{
+    const checkOut=new Date(new Date(checkIn).getTime()+nights*86400000).toISOString().split('T')[0];
+    // Step 1: récupérer la liste hôtels de la ville
+    const listUrl=`${AM_BASE}/v1/reference-data/locations/hotels/by-city?cityCode=${cityCode}`;
+    const listR=await fetch(listUrl,{headers:{Authorization:'Bearer '+API.am_token}});
+    if(!listR.ok) return null;
+    const listData=await listR.json();
+    const hotelIds=(listData.data||[]).slice(0,5).map(h=>h.hotelId).join(',');
+    if(!hotelIds) return null;
+    // Step 2: récupérer les offres pour ces hôtels
+    const offUrl=`${AM_BASE}/v3/shopping/hotel-offers?hotelIds=${hotelIds}&checkInDate=${checkIn}&checkOutDate=${checkOut}&adults=${guests}&currencyCode=EUR&max=5`;
+    const offR=await fetch(offUrl,{headers:{Authorization:'Bearer '+API.am_token}});
+    if(!offR.ok) return null;
+    return await offR.json();
+  }catch(){ return null; }
+}
+
+// Rendu du transport avec données Amadeus réelles
+async function renderTransportReal(mode){
+  const el=document.getElementById('tsp-opts');
+  if(!el) return;
+  // Déterminer la date de l'événement (approximation)
+  const eventDate=new Date(Date.now()+60*86400000).toISOString().split('T')[0];
+
+  if(mode==='vol'){
+    el.innerHTML='<div class="py-4 text-center text-xs" style="color:var(--sub)">⏳ Recherche vols Amadeus…</div>';
+    const data=await fetchAmadeusFlights(depCity,'CDG',eventDate,group);
+    if(!data||!data.data?.length){ renderTransport('vol'); return; }
+    el.innerHTML=data.data.slice(0,3).map((offer,i)=>{
+      const seg=offer.itineraries?.[0]?.segments?.[0];
+      const carrier=seg?.carrierCode||'AF';
+      const dep=seg?.departure?.iataCode||IATA[depCity]||'—';
+      const arr=seg?.arrival?.iataCode||'CDG';
+      const dur=offer.itineraries?.[0]?.duration?.replace('PT','').replace('H','h').replace('M','min')||'—';
+      const price=Math.round(parseFloat(offer.price?.grandTotal||0));
+      const sel=i===0?'sel':'';
+      return `<div class="opt ${sel}" onclick="pickT(this,'${carrier} · ${dep}→${arr}',${price})">
+        <div class="flex items-center gap-3"><span class="text-xl">✈️</span>
+          <div><div class="font-semibold text-sm">${carrier} · vol direct</div>
+          <div class="text-xs" style="color:var(--sub)">${dep} → ${arr} · ${dur} · A/R</div></div>
+        </div>
+        <div class="text-right"><div class="font-bold accent">${price} €</div><div class="text-xs" style="color:var(--sub)">par pers.</div></div>
+      </div>`;
+    }).join('');
+    if(data.data[0]){
+      prices.transport=Math.round(parseFloat(data.data[0].price?.grandTotal||0));
+      document.getElementById('tsp-sum').textContent='— Amadeus · '+prices.transport+' €/pers.';
+      updateTotal();
+    }
+  } else {
+    renderTransport('train'); // TGV : pas d'API gratuite publique
+  }
+}
+
+/* ─── DEMO FALLBACK DATA ─── */
+function renderDemoEvents(){
+  const demoEvents = [
+    {name:'Taylor Swift — Eras Tour',type:'Concert',emoji:'🎤',city:'Paris',venue:'La Défense Arena',date:'15 Jul 2025',price:'dès 389 €',pill:'pill-ok',pillLabel:'Disponible',grad:'linear-gradient(135deg,#1e0b35,#4c1d95)'},
+    {name:'Champions League Final',type:'Sport',emoji:'⚽',city:'Londres',venue:'Wembley Stadium',date:'31 Mai 2025',price:'dès 520 €',pill:'pill-warn',pillLabel:'23 packs restants',grad:'linear-gradient(135deg,#0a1535,#1e3a8a)'},
+    {name:'Coldplay — Music of Spheres',type:'Concert',emoji:'🎸',city:'Madrid',venue:'Bernabéu',date:'5 Jun 2025',price:'dès 310 €',pill:'pill-warn',pillLabel:'Dernières places',grad:'linear-gradient(135deg,#1f0808,#7f1d1d)'},
+    {name:'Coachella 2025',type:'Festival',emoji:'🎪',city:'Indio',venue:'Empire Polo Club',date:'11 Avr 2025',price:'dès 680 €',pill:'pill-ok',pillLabel:'Disponible',grad:'linear-gradient(135deg,#1c1005,#92400e)'},
+    {name:'Roland Garros 2025',type:'Sport',emoji:'🎾',city:'Paris',venue:'Stade Roland Garros',date:'25 Mai 2025',price:'dès 290 €',pill:'pill-full',pillLabel:'Quasi complet',grad:'linear-gradient(135deg,#031a0e,#14532d)'},
+    {name:'Beyoncé — Renaissance Tour',type:'Concert',emoji:'🎤',city:'Amsterdam',venue:'ArenA',date:'20 Jun 2025',price:'dès 445 €',pill:'pill-ok',pillLabel:'Disponible',grad:'linear-gradient(135deg,#1a0020,#6b21a8)'},
+  ];
+  const container = document.getElementById('events-swipe');
+  const hint = document.getElementById('swipe-hint');
+  container.innerHTML = demoEvents.map((ev,i)=>`
+    <div class="snap card overflow-hidden flex-shrink-0 cursor-pointer" style="min-width:262px;animation:fadeUp .4s ${i*.06}s ease both;opacity:0" onclick="go('event')">
+      <div style="height:158px;background:${ev.grad};position:relative;display:flex;align-items:center;justify-content:center;font-size:48px">${ev.emoji}
+        <div style="position:absolute;top:10px;left:10px"><span class="type-badge">${ev.type}</span></div>
+        <div class="img-price">${ev.price}</div>
+        <div style="position:absolute;bottom:0;left:0;right:0;height:48px;background:linear-gradient(to top,var(--card),transparent)"></div>
+      </div>
+      <div class="p-4">
+        <h3 class="font-semibold text-sm mb-1">${ev.name}</h3>
+        <p class="text-xs mb-3" style="color:var(--sub)">📍 ${ev.venue} · ${ev.city} · ${ev.date}</p>
+        <div class="flex items-center justify-between">
+          <span class="pill ${ev.pill}">${ev.pillLabel}</span>
+          <button class="text-xs font-semibold accent">Créer un pack →</button>
+        </div>
+      </div>
+    </div>`).join('');
+  if(hint){ hint.textContent='Glisser pour voir plus · Données démo (entrez votre clé Ticketmaster pour les vraies données)'; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT — Démarrage
+   ═══════════════════════════════════════════════════════════ */
+async function init(){
+  // UI de base
+  chg(0); setDep('Lyon'); renderTransport('vol'); buildTours();
+
+  // Événements : Ticketmaster si clé, sinon démo
+  if(API.tm){
+    showApiStatus('⏳ Connexion Ticketmaster…');
+    await loadTMEvents();
+  } else {
+    renderDemoEvents();
+  }
+
+  // Amadeus : connexion automatique si les clés sont renseignées
+  if(API.am && API.am_secret){
+    showApiStatus('⏳ Connexion Amadeus…');
+    await getAmadeusToken();
+  }
+
+  // MusicBrainz fonctionne toujours (aucune configuration)
+  showApiStatus('✅ MusicBrainz connecté — recherche d\'artistes activée', true);
+  setTimeout(()=>{
+    const s=document.getElementById('api-status');
+    if(s) s.style.display='none';
+  }, 3000);
+}
+
+init();
+</script>
+</body>
+</html>
