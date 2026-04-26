@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
@@ -11,149 +10,71 @@ import {
   Globe,
   Award,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { EventCard } from "@/components/ui/EventCard";
 import { Button } from "@/components/ui/Button";
 import { Event } from "@/types";
 
-const mockPopularEvents: Event[] = [
-  {
-    id: "1",
-    title: "Taylor Swift - Eras Tour",
-    venue: "La Défense Arena",
-    city: "Paris",
-    country: "France",
-    date: "2024-07-15",
-    type: "concert",
-    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=400",
-    ticketsAvailable: 500,
-    minPrice: 150,
-    maxPrice: 450,
-  },
-  {
-    id: "2",
-    title: "Champions League Final",
-    venue: "Stadion Berlin",
-    city: "Berlin",
-    country: "Germany",
-    date: "2024-06-01",
-    type: "sport",
-    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=500&h=400",
-    ticketsAvailable: 1200,
-    minPrice: 200,
-    maxPrice: 800,
-  },
-  {
-    id: "3",
-    title: "Coachella Festival",
-    venue: "Empire Polo Club",
-    city: "Indio",
-    country: "USA",
-    date: "2024-04-13",
-    type: "festival",
-    image: "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=500&h=400",
-    ticketsAvailable: 3000,
-    minPrice: 299,
-    maxPrice: 599,
-  },
-  {
-    id: "4",
-    title: "Roland Garros",
-    venue: "Stade Roland Garros",
-    city: "Paris",
-    country: "France",
-    date: "2024-05-26",
-    type: "sport",
-    image: "https://images.unsplash.com/photo-1554224311-beee415c15c9?w=500&h=400",
-    ticketsAvailable: 800,
-    minPrice: 100,
-    maxPrice: 400,
-  },
-  {
-    id: "5",
-    title: "Coldplay - Moon Music Tour",
-    venue: "O2 Arena",
-    city: "London",
-    country: "UK",
-    date: "2024-08-20",
-    type: "concert",
-    image: "https://images.unsplash.com/photo-1504764712202-4aebb8a0d4ca?w=500&h=400",
-    ticketsAvailable: 750,
-    minPrice: 80,
-    maxPrice: 300,
-  },
-  {
-    id: "6",
-    title: "Wimbledon Championships",
-    venue: "All England Club",
-    city: "London",
-    country: "UK",
-    date: "2024-06-24",
-    type: "sport",
-    image: "https://images.unsplash.com/photo-1483729558449-99daa93c17c1?w=500&h=400",
-    ticketsAvailable: 600,
-    minPrice: 120,
-    maxPrice: 500,
-  },
-];
-
 const steps = [
   {
     number: "01",
     title: "Choisissez l'événement",
-    description:
-      "Parcourez notre catalogue de 40M+ événents et trouvez celui qui vous fait rêver",
+    description: "Parcourez notre catalogue d'événements et trouvez celui qui vous fait rêver",
     icon: Globe,
   },
   {
     number: "02",
-    title: "Personnalisez le pack",
-    description:
-      "Combinez billets, vols, trains et hôtels selon vos préférences et votre budget",
+    title: "Personnalisez votre pack",
+    description: "Combinez billets, vols, trains et hôtels selon vos préférences et votre budget",
     icon: Zap,
   },
   {
     number: "03",
     title: "Réservez en 1 clic",
-    description:
-      "Finalisez la réservation et recevez les confirmations instantanément",
+    description: "Finalisez votre réservation et recevez vos confirmations instantanément",
     icon: CheckCircle,
   },
 ];
 
 const trustBadges = [
-  { icon: Globe, text: "40M+ événements", subtext: "Worldwide coverage" },
-  { icon: Award, text: "Prix garanti", subtext: "Best price promise" },
-  { icon: Shield, text: "Support 24/7", subtext: "Always here for you" },
+  { icon: Globe, text: "40M+ événements", subtext: "Couverture mondiale" },
+  { icon: Award, text: "Prix garanti", subtext: "Meilleur tarif" },
+  { icon: Shield, text: "Support 24/7", subtext: "Toujours disponible" },
 ];
 
 export default function HomePage() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    fetch(`/api/events?q=&size=6&dateFrom=${today}&sort=date,asc`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.events?.length) {
+          setEvents(data.events.slice(0, 6));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
   return (
-    <div className="min-h-screen bg-dark-950">
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        <div className="gradient-bg absolute inset-0 opacity-40 blur-3xl" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-dark-950/50 to-dark-950" />
-
+    <div className="min-h-screen bg-white">
+      {/* Hero */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-16 bg-gradient-to-br from-blue-50 via-white to-blue-50">
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -161,16 +82,18 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
             className="text-center space-y-6 mb-12"
           >
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+              Concerts · Sport · Festivals 2026
+            </div>
+
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-gray-900">
               <span className="block">Votre prochain grand voyage</span>
-              <span className="gradient-text block text-6xl md:text-7xl lg:text-8xl">
-                commence par un événement
-              </span>
+              <span className="gradient-text block">commence par un événement</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
-              Découvrez et réservez des packs complets : billets + transport +
-              hébergement. Le dynamic packaging pour les événements.
+            <p className="text-xl md:text-2xl text-gray-500 max-w-3xl mx-auto">
+              Découvrez et réservez des packs complets : billets + transport + hébergement.
             </p>
           </motion.div>
 
@@ -187,7 +110,7 @@ export default function HomePage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 justify-center"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4"
           >
             {trustBadges.map((badge, i) => {
               const Icon = badge.icon;
@@ -195,11 +118,11 @@ export default function HomePage() {
                 <motion.div
                   key={i}
                   variants={itemVariants}
-                  className="glass p-6 text-center hover:shadow-glow transition-smooth"
+                  className="bg-white border border-gray-200 rounded-2xl p-6 text-center shadow-sm hover:shadow-md transition-smooth"
                 >
-                  <Icon className="w-8 h-8 text-primary-400 mx-auto mb-3" />
-                  <p className="font-bold text-lg">{badge.text}</p>
-                  <p className="text-sm text-gray-400">{badge.subtext}</p>
+                  <Icon className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                  <p className="font-bold text-lg text-gray-900">{badge.text}</p>
+                  <p className="text-sm text-gray-500">{badge.subtext}</p>
                 </motion.div>
               );
             })}
@@ -207,7 +130,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-dark-900/50">
+      {/* Événements à venir — Ticketmaster live */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -215,28 +139,137 @@ export default function HomePage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-             #Événements Populaires
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Événements à venir
             </h2>
-            <p className="text-xl text-gray-400">
-              Explorez les événements les plus attendus du moment
+            <p className="text-xl text-gray-500">
+              Catalogue officiel Ticketmaster — dates 2026 en temps réel
             </p>
+          </motion.div>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+            </div>
+          ) : events.length > 0 ? (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {events.map((event, idx) => (
+                <motion.div key={event.id} variants={itemVariants}>
+                  <EventCard event={event} index={idx} />
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <div className="text-center py-20 text-gray-400">
+              Aucun événement disponible pour le moment.
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Comment ça marche */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Comment ça marche ?
+            </h2>
+            <p className="text-xl text-gray-500">3 étapes simples pour vos packs événements</p>
           </motion.div>
 
           <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
-            {mockPopularEvents.map((event, idx) => (
-              <motion.div key={event.id} variants={itemVariants}>
-                <EventCard event={event} index={idx} />
-              </motion.div>
-            ))}
+            {steps.map((step, idx) => {
+              const Icon = step.icon;
+              return (
+                <motion.div key={idx} variants={itemVariants} className="relative">
+                  <div className="bg-white border border-gray-200 rounded-2xl p-8 h-full hover:shadow-md hover:border-blue-200 transition-smooth">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 mb-6">
+                      <Icon className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <div className="text-5xl font-bold text-blue-100 mb-2">{step.number}</div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">{step.title}</h3>
+                    <p className="text-gray-500">{step.description}</p>
+                  </div>
+                  {idx < steps.length - 1 && (
+                    <div className="hidden md:block absolute -right-4 top-1/2 -translate-y-1/2 z-10">
+                      <ArrowRight className="w-8 h-8 text-blue-300" />
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </section>
+
+      {/* CTA */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-blue-600">
+        <div className="max-w-4xl mx-auto text-center space-y-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Prêt à vivre l'expérience ?
+            </h2>
+            <p className="text-xl text-blue-100 mb-8">
+              Explorez des milliers d'événements et créez votre pack idéal dès maintenant.
+            </p>
+            <a href="/">
+              <Button variant="secondary" size="lg" className="group bg-white text-blue-600 hover:bg-blue-50 border-white">
+                Découvrir les événements
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </a>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-50 border-t border-gray-200 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            {[
+              { title: "À propos", links: ["Notre histoire", "Carrières", "Blog"] },
+              { title: "Support", links: ["Contact", "FAQ", "Conditions"] },
+              { title: "Légal", links: ["Confidentialité", "CGU", "Cookies"] },
+              { title: "Suivez-nous", links: ["Twitter", "Instagram", "LinkedIn"] },
+            ].map((col) => (
+              <div key={col.title}>
+                <h4 className="font-bold text-gray-900 mb-4">{col.title}</h4>
+                <ul className="space-y-2 text-sm text-gray-500">
+                  {col.links.map((l) => (
+                    <li key={l}>
+                      <a href="/" className="hover:text-blue-600 transition-smooth">{l}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-gray-200 pt-8">
+            <p className="text-center text-gray-400 text-sm">
+              © 2026 Eventrip. Tous droits réservés.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
