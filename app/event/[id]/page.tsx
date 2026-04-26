@@ -8,9 +8,10 @@ import {
   Calendar,
   Users,
   Plane,
-  Hotel,
+  Hotel as HotelIcon,
   Ticket,
   Star,
+  Shield,
   ChevronDown,
   MapPinIcon,
   Wind,
@@ -413,7 +414,7 @@ export default function EventDetailPage({
               {
                 id: "hotel" as StepType,
                 title: "Étape 3: Hébergement",
-                icon: Hotel,
+                icon: HotelIcon,
                 content: (
                   <div className="space-y-4">
                     <p className="text-gray-300">
