@@ -76,3 +76,28 @@ export async function deletePackage(packageId: string) {
 
   if (error) throw error;
 }
+
+export async function savePackage(packageData: {
+  user_id: string;
+  event_id: string;
+  event_title: string;
+  event_date: string;
+  event_city: string;
+  event_venue?: string;
+  items: any[];
+  total_price: number;
+  currency: string;
+  passenger_name: string;
+  passenger_email: string;
+  passenger_phone?: string;
+  status: string;
+}): Promise<string> {
+  const { data, error } = await supabase
+    .from("packages")
+    .insert([packageData])
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  return `EVT-${(data.id as string).slice(0, 8).toUpperCase()}`;
+}
