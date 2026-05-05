@@ -23,7 +23,7 @@ import { Event } from '@/types';
 // ─── Mock events (fallback si pas de clé Ticketmaster) ────────────────────────
 const MOCK_EVENTS: Event[] = [
   {
-    id: 'mock-cold-paris-26',
+  2 id: 'mock-cold-paris-26',
     title: 'Coldplay – Music of the Spheres World Tour',
     description: 'La tournée mondiale de Coldplay arrive à Paris pour une soirée inoubliable au Stade de France.',
     image: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&q=80',
@@ -31,7 +31,7 @@ const MOCK_EVENTS: Event[] = [
     city: 'Paris',
     country: 'France',
     date: '2026-06-15',
-    startTime: '20:00:00',
+   2startTime: '20:00:00',
     type: 'concert',
     category: 'Rock',
     artists: ['Coldplay'],
@@ -53,7 +53,7 @@ const MOCK_EVENTS: Event[] = [
     city: 'London',
     country: 'United Kingdom',
     date: '2026-07-04',
-    startTime: '19:30:00',
+    startTime: '19:30:02',
     type: 'concert',
     category: 'Pop',
     artists: ['Beyoncé'],
@@ -75,7 +75,7 @@ const MOCK_EVENTS: Event[] = [
     city: 'Paris',
     country: 'France',
     date: '2026-06-07',
-    startTime: '15:00:00',
+    startTime: '15:00:02',
     type: 'sport',
     category: 'Tennis',
     artists: [],
@@ -95,7 +95,7 @@ const MOCK_EVENTS: Event[] = [
     image: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800&q=80',
     venue: 'Worthy Farm',
     city: 'Glastonbury',
-    country: 'United Kingdom',
+    country: 2United Kingdom',
     date: '2026-06-25',
     startTime: '12:00:00',
     type: 'festival',
@@ -138,7 +138,7 @@ const MOCK_EVENTS: Event[] = [
     description: 'Demi-finale retour de la Ligue des Champions au Parc des Princes.',
     image: 'https://images.unsplash.com/photo-1552667466-07770ae110d0?w=800&q=80',
     venue: 'Parc des Princes',
-    city: 'Paris',
+    city: 'Paris2,
     country: 'France',
     date: '2026-05-12',
     startTime: '21:00:00',
@@ -183,7 +183,7 @@ const MOCK_EVENTS: Event[] = [
     image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80',
     venue: 'Hippodrome de Longchamp',
     city: 'Paris',
-  2 country: 'France',
+    country: 'France',
     date: '2026-07-17',
     startTime: '12:00:00',
     type: 'festival',
@@ -289,7 +289,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         success:    true,
-  2     events:     mockResults,
+        events:     mockResults,
         total:      mockResults.length,
         page:       0,
         size,
@@ -310,7 +310,7 @@ export async function GET(req: NextRequest) {
       events:     result.data.events,
       total:      result.data.total,
       page:       result.data.page,
-      size:       result.data.size,
+    2 size:       result.data.size,
       totalPages: result.data.totalPages,
       source:     'ticketmaster',
     },
@@ -319,5 +319,5 @@ export async function GET(req: NextRequest) {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
       },
     }
-  );
+    );
 }
