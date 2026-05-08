@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, Ticket, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
 
-export default function AuthPage() {
+function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
@@ -93,7 +93,7 @@ export default function AuthPage() {
         </div>
 
         {/* Toggle */}
-        <div className="bg-gray-100 rounded-xl p-1 flex mb-8">
+        <div className="bg-gray-100 rounded-xl p-1 flec mb-8">
           <button
             type="button"
             onClick={() => { setMode("login"); setError(""); setSuccess(""); }}
@@ -217,5 +217,17 @@ export default function AuthPage() {
         </p>
       </motion.div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    }>
+      <AuthContent />
+    </Suspense>
   );
 }
