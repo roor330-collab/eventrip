@@ -1,189 +1,178 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronDown, Calendar, DollarSign, Music, Zap, Loader2 } from "lucide-react";
+import { Loader2, Zap, SlidersHorizontal, ChevronRight } from "lucide-react";
 import { SearchBar } from "@/components/ui/SearchBar";
-import { EventCard } from "@/components/ui/EventCard";
 import { Event } from "@/types";
 import { Button } from "@/components/ui/Button";
 
-interface Filters {
-  type: string;
-  priceMin: number;
-  priceMax: number;
-}
+const COUNTRY_FILTERS = [
+  { code: "", label: "Tous", flag: "🌍" },
+  { code: "FR", label: "France", flag: "🇫🇷" },
+  { code: "ES", label: "Espagne", flag: "🇪🇸" },
+  { code: "IT", label: "Italie", flag: "🇮🇹" },
+  { code: "DE", label: "Allemagne", flag: "🇩🇪" },
+];
+
+const TYPE_FILTERS = [
+  { value: "", label: "Tous", emoji: "✨" },
+  { value: "music", label: "Concerts", emoji: "🎵" },
+  { value: "sports", label: "Football", emoji: "⚽" },
+  { value: "festival", label: "Festivals", emoji: "🎪" },
+];
 
 export default function SearchContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<Filters>({ type: "", priceMin: 0, priceMax: 2000 });
-  const [expandedFilters, setExpandedFilters] = useState<string[]>(["type"]);
+  const [priceMax, setPriceMax] = useState(2000);
+  const [showFilters, setShowFilters] = useState(false);
+
+  const activeCountry = searchParams.get("country") || "";
+  const activeType = searchParams.get("type") || "";
+  const activeFrom = searchParams.get("from") || "";
+
+  const setFilter = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set(key, value); else params.delete(key);
+    router.push(`/search?${params}`);
+  };
 
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
-    const q = searchParams.get("artist") || searchParams.get("eventName") || searchParams.get("city") || "";
+    const q = searchParams.get("artist") || searchParams.get("eventName") || searchParams.get("q") || "";
     const city = searchParams.get("city") || undefined;
-
-    const params = new URLSearchParams({ size: "20", dateFrom: today, sort: "date,asc" });
+    const country = searchParams.get("country") || undefined;
+    const type = searchParams.get("type") || undefined;
+    const params = new URLSearchParams({ size: "24", dateFrom: today });
     if (q) params.set("q", q);
     if (city) params.set("city", city);
-    if (filters.type) params.set("type", filters.type);
-
+    if (country) params.set("country", country);
+    if (type && type !== "festival") params.set("type", type);
     setLoading(true);
     fetch(`/api/events?${params}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.events) setEvents(data.events);
-        else setEvents([]);
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.events) {
+          let evts: Event[] = data.events;
+          if (type === "festival") evts = evts.filter(e => e.type === "festival");
+          evts = evts.filter(e => (e.minPrice > 0 ? e.minPrice : 45) <= priceMax);
+          setEvents(evts);
+        } else setEvents([]);
       })
       .catch(() => setEvents([]))
       .finally(() => setLoading(false));
-  }, [searchParams, filters.type]);
+  }, [searchParams, priceMax]);
 
-  const filteredEvents = events.filter(
-    (e) => e.minPrice <= filters.priceMax && e.maxPrice >= filters.priceMin
-  );
-
-  const toggleSection = (s: string) =>
-    setExpandedFilters((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s]));
-
-  const eventTypes = [
-    { label: "Concerts", value: "music" },
-    { label: "Sport", value: "sports" },
-    { label: "Arts", value: "arts" },
-  ];
+  const searchQuery = searchParams.get("artist") || searchParams.get("eventName") || searchParams.get("q") || searchParams.get("city") || "";
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Barre de recherche sticky */}
-      <div className="sticky top-16 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200 py-4 px-4 sm:px-6 lg:px-8 shadow-sm">
-        <div className="max-w-7xl mx-auto">
-          <SearchBar compact={true} />
-        </div>
+    <div className="min-h-screen bg-[#0a0a0f]">
+      <div className="sticky top-16 z-40 bg-[#0d0d15]/95 backdrop-blur-lg border-b border-white/5 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto"><SearchBar compact={true} dark /></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Filtres */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-1">
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 space-y-6 sticky top-32 shadow-sm">
-              <h3 className="font-bold text-lg text-gray-900">Filtres</h3>
-
-              {/* Type */}
-              <div className="border-b border-gray-100 pb-4">
-                <button
-                  onClick={() => toggleSection("type")}
-                  className="flex items-center justify-between w-full font-semibold text-sm text-gray-700 hover:text-blue-600 transition-smooth"
-                >
-                  <span className="flex items-center gap-2"><Music className="w-4 h-4" />Type</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${expandedFilters.includes("type") ? "rotate-180" : ""}`} />
-                </button>
-                {expandedFilters.includes("type") && (
-                  <div className="mt-3 space-y-2">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="type"
-                        checked={filters.type === ""}
-                        onChange={() => setFilters((p) => ({ ...p, type: "" }))}
-                        className="accent-blue-600"
-                      />
-                      <span className="text-sm text-gray-700">Tous</span>
-                    </label>
-                    {eventTypes.map((t) => (
-                      <label key={t.value} className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="type"
-                          checked={filters.type === t.value}
-                          onChange={() => setFilters((p) => ({ ...p, type: t.value }))}
-                          className="accent-blue-600"
-                        />
-                        <span className="text-sm text-gray-700">{t.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-white/30 text-xs font-medium mr-1">Pays :</span>
+            {COUNTRY_FILTERS.map(c => (
+              <button key={c.code} onClick={() => setFilter("country", c.code)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${activeCountry === c.code ? "bg-blue-600 border-blue-500 text-white" : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"}`}>
+                {c.flag} {c.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-white/30 text-xs font-medium mr-1">Catégorie :</span>
+            {TYPE_FILTERS.map(t => (
+              <button key={t.value} onClick={() => setFilter("type", t.value)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${activeType === t.value ? "bg-purple-600 border-purple-500 text-white" : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"}`}>
+                {t.emoji} {t.label}
+              </button>
+            ))}
+            <button onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-all ml-auto">
+              <SlidersHorizontal className="w-3.5 h-3.5" /> Budget
+            </button>
+          </div>
+          {showFilters && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white/60 text-sm">Budget maximum</span>
+                <span className="text-white font-bold">{priceMax}€</span>
               </div>
-
-              {/* Budget */}
-              <div className="border-b border-gray-100 pb-4">
-                <button
-                  onClick={() => toggleSection("price")}
-                  className="flex items-center justify-between w-full font-semibold text-sm text-gray-700 hover:text-blue-600 transition-smooth"
-                >
-                  <span className="flex items-center gap-2"><DollarSign className="w-4 h-4" />Budget max</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${expandedFilters.includes("price") ? "rotate-180" : ""}`} />
-                </button>
-                {expandedFilters.includes("price") && (
-                  <div className="mt-3 space-y-3">
-                    <label className="text-xs text-gray-500 block">Max : {filters.priceMax}€</label>
-                    <input
-                      type="range" min="0" max="2000" step="50"
-                      value={filters.priceMax}
-                      onChange={(e) => setFilters((p) => ({ ...p, priceMax: parseInt(e.target.value) }))}
-                      className="w-full accent-blue-600"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <Button
-                variant="secondary"
-                size="md"
-                className="w-full"
-                onClick={() => setFilters({ type: "", priceMin: 0, priceMax: 2000 })}
-              >
-                Réinitialiser
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Résultats */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="lg:col-span-3">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {loading ? "Chargement..." : `${filteredEvents.length} événements à venir`}
-              </h2>
-              <select className="px-4 py-2 rounded-lg bg-white border border-gray-300 text-sm font-medium text-gray-700">
-                <option>Date proche</option>
-                <option>Prix croissant</option>
-              </select>
-            </div>
-
-            {loading ? (
-              <div className="flex justify-center py-20">
-                <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-              </div>
-            ) : filteredEvents.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredEvents.map((event, idx) => (
-                  <motion.div
-                    key={event.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                  >
-                    <EventCard event={event} index={idx} />
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-sm">
-                <Zap className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Aucun événement trouvé</h3>
-                <p className="text-gray-500 mb-6">Essayez d'ajuster vos filtres</p>
-                <Button variant="primary" onClick={() => setFilters({ type: "", priceMin: 0, priceMax: 2000 })}>
-                  Réinitialiser les filtres
-                </Button>
-              </motion.div>
-            )}
-          </motion.div>
+              <input type="range" min="0" max="2000" step="50" value={priceMax} onChange={e => setPriceMax(parseInt(e.target.value))} className="w-full accent-blue-500" />
+            </motion.div>
+          )}
         </div>
+
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white">
+              {loading ? <span className="text-white/40">Recherche en cours…</span> : (
+                <><span className="text-blue-400">{events.length}</span><span className="text-white/70"> événement{events.length !== 1 ? "s" : ""}</span>{searchQuery && <span className="text-white/40 font-normal text-base"> pour « {searchQuery} »</span>}{activeCountry && <span className="text-white/40 font-normal text-base"> en {COUNTRY_FILTERS.find(c => c.code === activeCountry)?.label}</span>}</>
+              )}
+            </h2>
+          </div>
+          {activeFrom && <span className="text-sm text-white/40 flex items-center gap-1">✈️ Départ depuis <span className="text-white/70 font-medium ml-1">{activeFrom}</span></span>}
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-24"><Loader2 className="w-10 h-10 animate-spin text-white/20" /></div>
+        ) : events.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {events.map((event, idx) => (
+              <motion.div key={event.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}>
+                <DarkSearchCard event={event} from={activeFrom} />
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-24">
+            <Zap className="w-12 h-12 text-white/10 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">Aucun événement trouvé</h3>
+            <p className="text-white/40 mb-6">Essayez d'autres filtres ou une recherche différente.</p>
+            <Button variant="primary" onClick={() => router.push("/search")}>Réinitialiser</Button>
+          </motion.div>
+        )}
       </div>
     </div>
+  );
+}
+
+function DarkSearchCard({ event, from }: { event: Event; from: string }) {
+  const typeLabel: Record<string, string> = { concert: "Concert", sport: "Football", festival: "Festival", theatre: "Théâtre" };
+  const typeBadge: Record<string, string> = { concert: "bg-purple-600/70", sport: "bg-green-600/70", festival: "bg-orange-600/70", theatre: "bg-blue-600/70" };
+  const flag = (c: string) => { const lc = c.toLowerCase(); if (lc.includes("france")) return "🇫🇷"; if (lc.includes("espagne") || lc.includes("spain")) return "🇪🇸"; if (lc.includes("italie") || lc.includes("italy")) return "🇮🇹"; if (lc.includes("allemagne") || lc.includes("germany")) return "🇩🇪"; return ""; };
+  const fmt = (d: string) => d ? new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "";
+  const href = from ? `/event/${event.id}?from=${encodeURIComponent(from)}` : `/event/${event.id}`;
+  const price = event.minPrice > 0 ? event.minPrice : 45;
+  return (
+    <a href={href} className="block group">
+      <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:bg-white/8 hover:border-white/20 transition-all duration-300 h-full flex flex-col">
+        <div className="relative h-44 bg-white/5 overflow-hidden flex-shrink-0">
+          {event.image ? <img src={event.image} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80" />
+            : <div className="w-full h-full flex items-center justify-center text-5xl bg-gradient-to-br from-blue-900/30 to-purple-900/30">🎵</div>}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent" />
+          <div className={`absolute top-3 right-3 ${typeBadge[event.type] || "bg-blue-600/70"} backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-xs font-semibold`}>{typeLabel[event.type] || event.type}</div>
+          {event.country && <div className="absolute top-3 left-3 text-lg">{flag(event.country)}</div>}
+        </div>
+        <div className="p-4 flex flex-col flex-1">
+          <h3 className="font-bold text-white text-sm mb-1 line-clamp-2 group-hover:text-blue-300 transition-colors">{event.title}</h3>
+          <p className="text-white/40 text-xs mb-auto truncate">📍 {event.venue}, {event.city}</p>
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+            <div>
+              <p className="text-white/30 text-xs">{fmt(event.date)}{event.startTime && ` · ${event.startTime.slice(0,5)}`}</p>
+              <p className="text-blue-400 font-bold">dès {price}€</p>
+            </div>
+            <span className="text-xs font-medium text-white/20 group-hover:text-blue-400 transition-colors px-3 py-1.5 rounded-lg border border-white/10 group-hover:border-blue-500/40 flex items-center gap-1">Voir pack <ChevronRight className="w-3 h-3" /></span>
+          </div>
+        </div>
+      </div>
+    </a>
   );
 }
