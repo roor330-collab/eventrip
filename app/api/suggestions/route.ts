@@ -1,61 +1,65 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAttractionSuggestions } from "@/lib/api/ticketmaster";
+/**
+ * GET /api/suggestions
+ * Autocomplete artistes — Ticketmaster si clé dispo, sinon MusicBrainz (gratuit).
+ *
+ * Query params:
+ *   q    — texte de recherche (min 2 chars)
+ *   size — nombre de résultats (défaut: 6)
+ */
 
-const CITIES = [
-  { id: "paris", name: "Paris", country: "France" },
-  { id: "london", name: "London", country: "UK" },
-  { id: "barcelona", name: "Barcelona", country: "Spain" },
-  { id: "amsterdam", name: "Amsterdam", country: "Netherlands" },
-  { id: "berlin", name: "Berlin", country: "Germany" },
-  { id: "madrid", name: "Madrid", country: "Spain" },
-  { id: "rome", name: "Rome", country: "Italy" },
-  { id: "milan", name: "Milan", country: "Italy" },
-  { id: "lisbon", name: "Lisbon", country: "Portugal" },
-  { id: "brussels", name: "Brussels", country: "Belgium" },
-];
+import { NextRequest, NextResponse } from 'next/server';
+import { searchAttractions } from '@/lib/api/ticketmaster';
+import { apiFetch } from '@/lib/api-client';
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q") || "";
+const MB_BASE = 'https://musicbrainz.org/ws/2';
+
+export async function GET(req: NextRequest) {
+  const q    = req.nextUrl.searchParams.get('q') || '';
+  const size = Math.min(parseInt(req.nextUrl.searchParams.get('size') || '6'), 10);
 
   if (q.length < 2) {
-    return NextResponse.json({ suggestions: [] });
+    return NextResponse.json({ success: true, data: [], source: 'none' });
   }
 
-  const lower = q.toLowerCase();
+  // 1. Ticketmaster (données riches : genre, photo, nb concerts)
+  if (process.env.TICKETMASTER_API_KEY) {
+    const result = await searchAttractions(q, size);
+    if (result.success && result.data?.length) {
+      return NextResponse.json({ ...result, source: 'ticketmaster' }, {
+        headers: { 'Cache-Control': 'public, s-maxage=120' },
+      });
+    }
+  }
 
+  // 2. Fallback MusicBrainz (totalement gratuit, open source, CORS)
   try {
-    const [attractions, citySuggestions] = await Promise.allSettled([
-      getAttractionSuggestions(q),
-      Promise.resolve(
-        CITIES
-          .filter((c) => c.name.toLowerCase().startsWith(lower))
-          .slice(0, 3)
-          .map((c) => ({
-            id: c.id,
-            name: c.name,
-            type: "city" as const,
-            subtitle: c.country,
-          }))
-      ),
-    ]);
+    const url = `${MB_BASE}/artist/?query=${encodeURIComponent(q)}&limit=${size}&fmt=json`;
+    const data = await apiFetch(url, {
+      headers:  { 'User-Agent': 'Eventrip/1.0 (contact@eventrip.fr)' },
+      service:  'musicbrainz',
+      cacheTtl: 120,
+      cacheKey: `mb:artist:${q}:${size}`,
+    });
 
-    const artistResults = attractions.status === "fulfilled"
-      ? attractions.value.slice(0, 5).map((a: any) => ({
-          id: a.id,
-          name: a.name,
-          type: "artist" as const,
-          subtitle: a.classifications?.[0]?.genre?.name,
-        }))
-      : [];
+    const artists = (data.artists || []).map((a) => ({
+      id:             a.id,
+      name:           a.name,
+      genre:          a.tags?.[0]?.name || a.type || '',
+      country:        a.country || '',
+      disambiguation: a.disambiguation || '',
+      image:          '',
+      source:         'musicbrainz',
+    }));
 
-    const cityResults = citySuggestions.status === "fulfilled"
-      ? citySuggestions.value
-      : [];
-
-    const suggestions = [...artistResults, ...cityResults].slice(0, 8);
-    return NextResponse.json({ suggestions });
-  } catch (error) {
-    return NextResponse.json({ suggestions: [] });
+    return NextResponse.json({ success: true, data: artists, source: 'musicbrainz' }, {
+      headers: { 'Cache-Control': 'public, s-maxage=120' },
+    });
+  } catch (err) {
+    return NextResponse.json({
+      success: false,
+      error:   err.message,
+      data:    [],
+      source:  'error',
+    }, { status: 502 });
   }
 }
