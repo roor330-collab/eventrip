@@ -1,26 +1,16 @@
 /**
  * GET /api/events
- * Recherche Ticketmaster — France, Espagne, Italie par défaut.
- * Concerts (Music) + Sports en priorité.
- *
- * Query params:
- *   q           — mot-clé (artiste, événement)
- *   city        — ville précise
- *   country     — code pays FR | ES | IT (vide = les 3 pays)
- *   lat, lng    — géolocalisation
- *   radius      — km (défaut: 50)
- *   type        — music | sports | arts
- *   dateFrom    — YYYY-MM-DD
- *   dateTo      — YYYY-MM-DD
- *   page        — numéro de page (défaut: 0)
- *   size        — résultats par page (défaut: 20, max: 50)
+ * Recherche Ticketmaster multi-pays — FR + ES + IT + DE.
+ * Filtre strict : concerts, festivals et sport uniquement.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { searchEvents, TM_SEGMENTS } from '@/lib/api/ticketmaster';
 import { Event } from '@/types';
 
-// ─── Mock events FR + ES + IT (fallback si pas de clé) ───────────────────────
+// Types autorisés — concerts, festivals, sport uniquement
+const ALLOWED_TYPES = ['concert', 'festival', 'sport'];
+
 const MOCK_EVENTS: Event[] = [
   {
     id: 'mock-cold-paris-26',
@@ -114,10 +104,41 @@ const MOCK_EVENTS: Event[] = [
     artists: ['Taylor Swift'], ticketsAvailable: 150, minPrice: 95, maxPrice: 320,
     latitude: 45.4781, longitude: 9.1239, source: 'ticketmaster',
   },
+  {
+    id: 'mock-rammstein-berlin-26',
+    title: 'Rammstein – Zeit Tour',
+    description: 'Rammstein déploie son show pyrotechnique spectaculaire à l\'Olympiastadion de Berlin.',
+    image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80',
+    venue: 'Olympiastadion Berlin', city: 'Berlin', country: 'Allemagne',
+    date: '2026-06-20', startTime: '20:00:00', type: 'concert', category: 'Metal',
+    artists: ['Rammstein'], ticketsAvailable: 280, minPrice: 75, maxPrice: 250,
+    latitude: 52.5147, longitude: 13.2395, source: 'ticketmaster',
+  },
+  {
+    id: 'mock-rockamring-26',
+    title: 'Rock am Ring 2026',
+    description: 'Le plus grand festival rock d\'Allemagne avec 3 jours de concerts légendaires.',
+    image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80',
+    venue: 'Nürburgring', city: 'Nürburg', country: 'Allemagne',
+    date: '2026-06-05', startTime: '12:00:00', type: 'festival', category: 'Festival',
+    artists: ['Metallica', 'Billie Eilish', 'Twenty One Pilots'],
+    ticketsAvailable: 600, minPrice: 180, maxPrice: 299,
+    latitude: 50.3358, longitude: 6.9475, source: 'ticketmaster',
+  },
+  {
+    id: 'mock-bvb-munich-26',
+    title: 'Borussia Dortmund vs Bayern Munich – Der Klassiker',
+    description: 'Le choc au sommet de la Bundesliga : BVB contre le Bayern à Signal Iduna Park.',
+    image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80',
+    venue: 'Signal Iduna Park', city: 'Dortmund', country: 'Allemagne',
+    date: '2026-04-25', startTime: '18:30:00', type: 'sport', category: 'Football',
+    artists: [], ticketsAvailable: 90, minPrice: 45, maxPrice: 350,
+    latitude: 51.4926, longitude: 7.4517, source: 'ticketmaster',
+  },
 ];
 
-function filterMockEvents(q, city, country, type, size = 20) {
-  let events = [...MOCK_EVENTS];
+function filterMockEvents(q?: string, city?: string, country?: string, type?: string, size = 20): Event[] {
+  let events = MOCK_EVENTS.filter(e => ALLOWED_TYPES.includes(e.type));
   if (q) {
     const lq = q.toLowerCase();
     events = events.filter(e =>
@@ -128,82 +149,127 @@ function filterMockEvents(q, city, country, type, size = 20) {
       e.category?.toLowerCase().includes(lq)
     );
   }
-  if (city) { const lc = city.toLowerCase(); events = events.filter(e => e.city.toLowerCase().includes(lc)); }
+  if (city) {
+    const lc = city.toLowerCase();
+    events = events.filter(e => e.city.toLowerCase().includes(lc));
+  }
   if (country) {
-    const countryMap = { FR: 'france', ES: 'espagne', IT: 'italie' };
+    const countryMap: Record<string, string> = { FR: 'france', ES: 'espagne', IT: 'italie', DE: 'allemagne' };
     const mapped = countryMap[country.toUpperCase()];
     if (mapped) events = events.filter(e => e.country.toLowerCase().includes(mapped));
   }
   if (type) {
-    const typeMap = { music: 'concert', sports: 'sport', arts: 'festival' };
+    const typeMap: Record<string, string> = { music: 'concert', sports: 'sport', festival: 'festival' };
     const mapped = typeMap[type] || type;
     events = events.filter(e => e.type === mapped);
   }
   return events.slice(0, size);
 }
 
-async function searchMultiCountry(params) {
+async function searchMultiCountry(params: {
+  keyword?: string;
+  segmentId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page: number;
+  size: number;
+}) {
   const { keyword, segmentId, dateFrom, dateTo, page, size } = params;
-  const perCountry = Math.ceil(size / 3);
-  const [frResult, esResult, itResult] = await Promise.allSettled([
+  const perCountry = Math.ceil(size / 4);
+
+  const [frResult, esResult, itResult, deResult] = await Promise.allSettled([
     searchEvents({ keyword, countryCode: 'FR', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'date,asc' }),
     searchEvents({ keyword, countryCode: 'ES', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'date,asc' }),
     searchEvents({ keyword, countryCode: 'IT', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'date,asc' }),
+    searchEvents({ keyword, countryCode: 'DE', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'date,asc' }),
   ]);
-  const allEvents = [];
-  for (const result of [frResult, esResult, itResult]) {
+
+  const allEvents: Event[] = [];
+  for (const result of [frResult, esResult, itResult, deResult]) {
     if (result.status === 'fulfilled' && result.value.success && result.value.data?.events) {
       allEvents.push(...result.value.data.events);
     }
   }
-  const seen = new Set();
+
+  const seen = new Set<string>();
   return allEvents
+    .filter(e => ALLOWED_TYPES.includes(e.type))
     .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
     .filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
     .slice(0, size);
 }
 
-export async function GET(req) {
+export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
-  const q = sp.get('q') || '';
-  const city = sp.get('city') || undefined;
-  const country = sp.get('country') || undefined;
-  const lat = sp.get('lat');
-  const lng = sp.get('lng');
-  const radius = parseInt(sp.get('radius') || '50');
-  const type = sp.get('type') || undefined;
+  const q        = sp.get('q')        || '';
+  const city     = sp.get('city')     || undefined;
+  const country  = sp.get('country')  || undefined;
+  const lat      = sp.get('lat');
+  const lng      = sp.get('lng');
+  const radius   = parseInt(sp.get('radius')   || '50');
+  const type     = sp.get('type')     || undefined;
   const dateFrom = sp.get('dateFrom') || undefined;
-  const dateTo = sp.get('dateTo') || undefined;
-  const page = parseInt(sp.get('page') || '0');
-  const size = Math.min(parseInt(sp.get('size') || '20'), 50);
+  const dateTo   = sp.get('dateTo')   || undefined;
+  const page     = parseInt(sp.get('page') || '0');
+  const size     = Math.min(parseInt(sp.get('size') || '20'), 50);
 
   if (!process.env.TICKETMASTER_API_KEY) {
     const mockResults = filterMockEvents(q, city, country, type, size);
     return NextResponse.json({ success: true, events: mockResults, total: mockResults.length, page: 0, size, totalPages: 1, source: 'mock' });
   }
 
-  const segmentMap = { music: TM_SEGMENTS.music, sports: TM_SEGMENTS.sports, arts: TM_SEGMENTS.arts };
+  // Segments : music + sports uniquement (pas arts/family/film)
+  const segmentMap: Record<string, string> = {
+    music:   TM_SEGMENTS.music,
+    sports:  TM_SEGMENTS.sports,
+    concert: TM_SEGMENTS.music,
+    sport:   TM_SEGMENTS.sports,
+  };
   const segmentId = type ? segmentMap[type] : undefined;
 
   try {
     if (lat && lng) {
-      const result = await searchEvents({ keyword: q || undefined, geoPoint: lat+','+lng, radius, segmentId, dateFrom, dateTo, page, size, sort: 'date,asc' });
+      const result = await searchEvents({
+        keyword: q || undefined, geoPoint: `${lat},${lng}`, radius,
+        segmentId, dateFrom, dateTo, page, size, sort: 'date,asc',
+      });
       if (result.success && result.data?.events?.length) {
-        return NextResponse.json({ success: true, events: result.data.events, total: result.data.total, page: result.data.page, size: result.data.size, totalPages: result.data.totalPages, source: 'ticketmaster' }, { headers: { 'Cache-Control': 'public, s-maxage=300' } });
+        const filtered = result.data.events.filter(e => ALLOWED_TYPES.includes(e.type));
+        return NextResponse.json(
+          { success: true, events: filtered, total: filtered.length, page: result.data.page, size: result.data.size, totalPages: result.data.totalPages, source: 'ticketmaster' },
+          { headers: { 'Cache-Control': 'public, s-maxage=300' } }
+        );
       }
     }
+
     if (country || city) {
-      const result = await searchEvents({ keyword: q || undefined, city, countryCode: country, segmentId, dateFrom, dateTo, page, size, sort: 'date,asc' });
+      const result = await searchEvents({
+        keyword: q || undefined, city, countryCode: country,
+        segmentId, dateFrom, dateTo, page, size, sort: 'date,asc',
+      });
       if (result.success && result.data?.events?.length) {
-        return NextResponse.json({ success: true, events: result.data.events, total: result.data.total, page: result.data.page, size: result.data.size, totalPages: result.data.totalPages, source: 'ticketmaster' }, { headers: { 'Cache-Control': 'public, s-maxage=300' } });
+        const filtered = result.data.events.filter(e => ALLOWED_TYPES.includes(e.type));
+        return NextResponse.json(
+          { success: true, events: filtered, total: filtered.length, page: result.data.page, size: result.data.size, totalPages: result.data.totalPages, source: 'ticketmaster' },
+          { headers: { 'Cache-Control': 'public, s-maxage=300' } }
+        );
       }
     }
+
     const multiEvents = await searchMultiCountry({ keyword: q || undefined, segmentId, dateFrom, dateTo, page, size });
     if (multiEvents.length > 0) {
-      return NextResponse.json({ success: true, events: multiEvents, total: multiEvents.length, page: 0, size, totalPages: 1, source: 'ticketmaster' }, { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } });
+      return NextResponse.json(
+        { success: true, events: multiEvents, total: multiEvents.length, page: 0, size, totalPages: 1, source: 'ticketmaster' },
+        { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } }
+      );
     }
+
     const mockResults = filterMockEvents(q, city, country, type, size);
-    return NextResponse.json({ success: true, events: mockResults, total: mockResults.length, page: 0, size, totalPages: 1, source: 'mock_empty' }, { headers: { 'Cache-Control': 'public, s-maxage=60' } });
+    return NextResponse.json(
+      { success: true, events: mockResults, total: mockResults.length, page: 0, size, totalPages: 1, source: 'mock_fallback' },
+      { headers: { 'Cache-Control': 'public, s-maxage=60' } }
+    );
+
   } catch (error) {
     console.error('[/api/events] Error:', error);
     const mockResults = filterMockEvents(q, city, country, type, size);
