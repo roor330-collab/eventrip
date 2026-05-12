@@ -3,26 +3,72 @@
  * Recherche de vols A/R depuis une ville de départ vers la ville de l'événement.
  * Utilise Amadeus Self-Service si les credentials sont présents.
  * Fallback : vols mock réalistes pour la démo.
+ *
+ * Query params:
+ *   from       — ville de départ (ex: "Paris", "Lyon")
+ *   to         — ville destination (ex: "Berlin", "Barcelone")
+ *   date       — date aller YYYY-MM-DD
+ *   adults     — nb voyageurs (défaut: 2)
+ *   returnDays — jours après l'événement pour le retour (défaut: 1)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { searchFlights } from '@/lib/api/amadeus';
+import { searchFlights, CITY_TO_IATA } from '@/lib/api/amadeus';
 
+// ─── Mapping complet ville → IATA (FR + EN + local) ─────────────────────────
+// Inclut noms français, anglais ET locaux pour matcher les réponses Ticketmaster
 const CITY_IATA: Record<string, string> = {
+  // France (noms FR)
   'Paris': 'CDG', 'Lyon': 'LYS', 'Marseille': 'MRS', 'Bordeaux': 'BOD',
   'Toulouse': 'TLS', 'Nice': 'NCE', 'Nantes': 'NTE', 'Strasbourg': 'SXB',
   'Lille': 'LIL', 'Rennes': 'RNS', 'Montpellier': 'MPL', 'Grenoble': 'GNB',
-  'Madrid': 'MAD', 'Barcelone': 'BCN', 'Séville': 'SVQ', 'Valence': 'VLC',
-  'Bilbao': 'BIO', 'Málaga': 'AGP', 'Saragosse': 'ZAZ', 'Grenade': 'GRX',
-  'Rome': 'FCO', 'Milan': 'MXP', 'Florence': 'FLR', 'Naples': 'NAP',
-  'Turin': 'TRN', 'Venise': 'VCE', 'Bologne': 'BLQ', 'Palerme': 'PMO',
-  'Berlin': 'BER', 'Munich': 'MUC', 'Hambourg': 'HAM', 'Cologne': 'CGN',
-  'Francfort': 'FRA', 'Stuttgart': 'STR', 'Düsseldorf': 'DUS', 'Leipzig': 'LEJ',
-  'Dortmund': 'DTM', 'Nürburg': 'CGN',
-  'Bruxelles': 'BRU', 'Amsterdam': 'AMS', 'Genève': 'GVA', 'Zurich': 'ZRH',
-  'Londres': 'LHR', 'Lisbonne': 'LIS',
+  'Saint-Denis': 'CDG',   // Stade de France
+  // Espagne (FR + EN + ES)
+  'Madrid': 'MAD',
+  'Barcelone': 'BCN', 'Barcelona': 'BCN',
+  'Séville': 'SVQ',   'Seville': 'SVQ',   'Sevilla': 'SVQ',
+  'Valence': 'VLC',   'Valencia': 'VLC',
+  'Bilbao': 'BIO',
+  'Málaga': 'AGP',    'Malaga': 'AGP',
+  'Saragosse': 'ZAZ', 'Zaragoza': 'ZAZ',
+  'Grenade': 'GRX',   'Granada': 'GRX',
+  // Italie (FR + EN + IT)
+  'Rome': 'FCO',      'Roma': 'FCO',
+  'Milan': 'MXP',     'Milano': 'MXP',
+  'Florence': 'FLR',  'Firenze': 'FLR',
+  'Naples': 'NAP',    'Napoli': 'NAP',    'Naples (Italy)': 'NAP',
+  'Turin': 'TRN',     'Torino': 'TRN',
+  'Venise': 'VCE',    'Venice': 'VCE',    'Venezia': 'VCE',
+  'Bologne': 'BLQ',   'Bologna': 'BLQ',
+  'Palerme': 'PMO',   'Palermo': 'PMO',
+  'Monza': 'MXP',     // GP Italie → aéroport Milan
+  // Allemagne (FR + EN + DE)
+  'Berlin': 'BER',
+  'Munich': 'MUC',    'München': 'MUC',
+  'Hambourg': 'HAM',  'Hamburg': 'HAM',
+  'Cologne': 'CGN',   'Köln': 'CGN',
+  'Francfort': 'FRA', 'Frankfurt': 'FRA', 'Frankfurt am Main': 'FRA',
+  'Stuttgart': 'STR',
+  'Düsseldorf': 'DUS', 'Dusseldorf': 'DUS',
+  'Leipzig': 'LEJ',
+  'Dortmund': 'DTM',
+  'Nürburg': 'CGN',   'Nurburg': 'CGN',   // Nürburgring → Cologne
+  'Nürburgring': 'CGN',
+  // Portugal / Belgique / Autres
+  'Bruxelles': 'BRU', 'Brussels': 'BRU',  'Brussel': 'BRU',
+  'Amsterdam': 'AMS',
+  'Genève': 'GVA',    'Geneva': 'GVA',    'Genf': 'GVA',
+  'Zurich': 'ZRH',    'Zürich': 'ZRH',
+  'Londres': 'LHR',   'London': 'LHR',
+  'Lisbonne': 'LIS',  'Lisbon': 'LIS',    'Lisboa': 'LIS',
+  'Dublin': 'DUB',
+  'Vienne': 'VIE',    'Vienna': 'VIE',    'Wien': 'VIE',
+  'Prague': 'PRG',
+  'Budapest': 'BUD',
+  'Varsovie': 'WAW',  'Warsaw': 'WAW',    'Warszawa': 'WAW',
 };
 
+// Durées de vol approximatives (minutes) entre grandes villes
 const FLIGHT_DURATIONS: Record<string, number> = {
   'CDG-BCN': 125, 'CDG-MAD': 135, 'CDG-FCO': 145, 'CDG-MXP': 100,
   'CDG-BER': 110, 'CDG-MUC': 100, 'CDG-LYS': 60,  'CDG-NCE': 75,
@@ -32,28 +78,74 @@ const FLIGHT_DURATIONS: Record<string, number> = {
   'NCE-FCO': 75,  'NCE-MXP': 60,  'LIL-BER': 100, 'SXB-MUC': 70,
 };
 
-function getDuration(a: string, b: string): number {
-  return FLIGHT_DURATIONS[`${a}-${b}`] || FLIGHT_DURATIONS[`${b}-${a}`] || 120;
+function getDuration(fromIATA: string, toIATA: string): number {
+  return FLIGHT_DURATIONS[`${fromIATA}-${toIATA}`]
+    || FLIGHT_DURATIONS[`${toIATA}-${fromIATA}`]
+    || 120; // défaut 2h
 }
 
-function addMins(time: string, mins: number): string {
-  const [h, m] = time.split(':').map(Number);
-  const t = h * 60 + m + mins;
-  return `${String(Math.floor(t / 60) % 24).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
-}
+function getMockFlights(from: string, to: string, date: string, adults: number) {
+  const fromIATA = CITY_IATA[from] || 'CDG';
+  const toIATA   = CITY_IATA[to]   || 'BCN';
+  const duration = getDuration(fromIATA, toIATA);
 
-function getMockFlights(from: string, to: string, date: string) {
-  const fi = CITY_IATA[from] || 'CDG';
-  const ti = CITY_IATA[to]   || 'BCN';
-  const dur = getDuration(fi, ti);
-  const base = Math.round(55 + dur * 0.65);
-  const deps = ['06:30', '09:15', '12:40', '16:55', '19:20'];
+  // Prix de base selon durée
+  const base = Math.round(50 + duration * 0.7 + Math.random() * 40);
+
+  const addMinutes = (time: string, mins: number) => {
+    const [h, m] = time.split(':').map(Number);
+    const total  = h * 60 + m + mins;
+    return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  };
+
+  const departures = ['06:30', '09:15', '12:40', '16:55', '19:20'];
+
   return [
-    { id: `m-${fi}-${ti}-af`, airline: 'Air France',  flightNumber: `AF${100+Math.floor(Math.random()*900)}`, departureAirport: fi, arrivalAirport: ti, departureTime: `${date}T${deps[0]}:00`, arrivalTime: `${date}T${addMins(deps[0],dur)}:00`, price: Math.round(base*1.3), duration: dur, stops: 0, availability: 7 },
-    { id: `m-${fi}-${ti}-vy`, airline: 'Vueling',     flightNumber: `VY${2000+Math.floor(Math.random()*999)}`, departureAirport: fi, arrivalAirport: ti, departureTime: `${date}T${deps[1]}:00`, arrivalTime: `${date}T${addMins(deps[1],dur)}:00`, price: Math.round(base*0.95), duration: dur, stops: 0, availability: 14 },
-    { id: `m-${fi}-${ti}-fr`, airline: 'Ryanair',     flightNumber: `FR${3000+Math.floor(Math.random()*999)}`, departureAirport: fi, arrivalAirport: ti, departureTime: `${date}T${deps[2]}:00`, arrivalTime: `${date}T${addMins(deps[2],dur)}:00`, price: Math.round(base*0.65), duration: dur, stops: 0, availability: 28 },
-    { id: `m-${fi}-${ti}-u2`, airline: 'easyJet',     flightNumber: `U2${4000+Math.floor(Math.random()*999)}`, departureAirport: fi, arrivalAirport: ti, departureTime: `${date}T${deps[3]}:00`, arrivalTime: `${date}T${addMins(deps[3],dur)}:00`, price: Math.round(base*0.85), duration: dur, stops: 0, availability: 19 },
-    { id: `m-${fi}-${ti}-lh`, airline: 'Lufthansa',   flightNumber: `LH${5000+Math.floor(Math.random()*999)}`, departureAirport: fi, arrivalAirport: 'FRA',  departureTime: `${date}T${deps[4]}:00`, arrivalTime: `${date}T${addMins(deps[4],dur+60)}:00`, price: Math.round(base*1.1), duration: dur+60, stops: 1, availability: 11 },
+    {
+      id: `mock-${fromIATA}-${toIATA}-af`,
+      airline: 'Air France', flightNumber: `AF${100 + Math.floor(Math.random() * 900)}`,
+      departureAirport: fromIATA, arrivalAirport: toIATA,
+      departureTime: `${date}T${departures[0]}:00`,
+      arrivalTime:   `${date}T${addMinutes(departures[0], duration)}:00`,
+      price: Math.round(base * 1.3),
+      duration, stops: 0, availability: 7,
+    },
+    {
+      id: `mock-${fromIATA}-${toIATA}-vy`,
+      airline: 'Vueling', flightNumber: `VY${2000 + Math.floor(Math.random() * 999)}`,
+      departureAirport: fromIATA, arrivalAirport: toIATA,
+      departureTime: `${date}T${departures[1]}:00`,
+      arrivalTime:   `${date}T${addMinutes(departures[1], duration)}:00`,
+      price: Math.round(base * 0.95),
+      duration, stops: 0, availability: 14,
+    },
+    {
+      id: `mock-${fromIATA}-${toIATA}-fr`,
+      airline: 'Ryanair', flightNumber: `FR${3000 + Math.floor(Math.random() * 999)}`,
+      departureAirport: fromIATA, arrivalAirport: toIATA,
+      departureTime: `${date}T${departures[2]}:00`,
+      arrivalTime:   `${date}T${addMinutes(departures[2], duration)}:00`,
+      price: Math.round(base * 0.65),
+      duration, stops: 0, availability: 28,
+    },
+    {
+      id: `mock-${fromIATA}-${toIATA}-u2`,
+      airline: 'easyJet', flightNumber: `U2${4000 + Math.floor(Math.random() * 999)}`,
+      departureAirport: fromIATA, arrivalAirport: toIATA,
+      departureTime: `${date}T${departures[3]}:00`,
+      arrivalTime:   `${date}T${addMinutes(departures[3], duration)}:00`,
+      price: Math.round(base * 0.85),
+      duration, stops: 0, availability: 19,
+    },
+    {
+      id: `mock-${fromIATA}-${toIATA}-lh`,
+      airline: 'Lufthansa', flightNumber: `LH${5000 + Math.floor(Math.random() * 999)}`,
+      departureAirport: fromIATA, arrivalAirport: 'FRA',
+      departureTime: `${date}T${departures[4]}:00`,
+      arrivalTime:   `${date}T${addMinutes(departures[4], duration + 60)}:00`,
+      price: Math.round(base * 1.1),
+      duration: duration + 60, stops: 1, availability: 11,
+    },
   ].sort((a, b) => a.price - b.price);
 }
 
@@ -66,21 +158,56 @@ export async function GET(req: NextRequest) {
   const returnDays = parseInt(sp.get('returnDays') || '1');
 
   if (!from || !to || !date) {
-    return NextResponse.json({ success: false, error: 'Paramètres requis : from, to, date', flights: [] }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: 'Paramètres requis : from, to, date', flights: [] },
+      { status: 400 }
+    );
   }
 
-  const destinationIATA = CITY_IATA[to];
+  // Normalisation : cherche le code IATA avec ou sans accents, casse insensible
+  const toNorm = to.trim();
+  const destinationIATA = CITY_IATA[toNorm]
+    ?? CITY_IATA[toNorm.charAt(0).toUpperCase() + toNorm.slice(1)]
+    ?? Object.entries(CITY_IATA).find(([k]) => k.toLowerCase() === toNorm.toLowerCase())?.[1]
+    ?? null;
 
-  if (process.env.AMADEUS_CLIENT_ID && process.env.AMADEUS_CLIENT_SECRET && destinationIATA) {
+  if (!destinationIATA) {
+    // Ville inconnue → mock avec code générique mais vols plausibles
+    return NextResponse.json({
+      success: true,
+      flights: getMockFlights(from, to, date, adults),
+      source: 'mock',
+      notice: `Code IATA inconnu pour "${to}" — vols estimés depuis ${from}`,
+    });
+  }
+
+  // ── Amadeus si credentials configurés ────────────────────────────────────────
+  if (process.env.AMADEUS_CLIENT_ID && process.env.AMADEUS_CLIENT_SECRET) {
     try {
-      const result = await searchFlights({ originCity: from, destinationIATA, eventDate: date, adults, returnDays });
+      const result = await searchFlights({
+        originCity: from,
+        destinationIATA,
+        eventDate: date,
+        adults,
+        returnDays,
+      });
+
       if (result.success && result.data?.length) {
-        return NextResponse.json({ success: true, flights: result.data, source: 'amadeus' }, { headers: { 'Cache-Control': 'public, s-maxage=180' } });
+        return NextResponse.json(
+          { success: true, flights: result.data, source: 'amadeus' },
+          { headers: { 'Cache-Control': 'public, s-maxage=180' } }
+        );
       }
     } catch (err) {
       console.error('[/api/flights] Amadeus error:', err);
     }
   }
 
-  return NextResponse.json({ success: true, flights: getMockFlights(from, to, date), source: 'mock' }, { headers: { 'Cache-Control': 'public, s-maxage=300' } });
+  // ── Fallback mock réaliste ────────────────────────────────────────────────────
+  const mockFlights = getMockFlights(from, to, date, adults);
+  return NextResponse.json({
+    success: true,
+    flights: mockFlights,
+    source: 'mock',
+  }, { headers: { 'Cache-Control': 'public, s-maxage=300' } });
 }
