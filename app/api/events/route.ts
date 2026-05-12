@@ -189,11 +189,12 @@ async function searchMultiCountry(params: {
   const { keyword, segmentId, dateFrom, dateTo, page, size } = params;
   const perCountry = Math.ceil(size / 4);
 
+  // sort=relevance,desc → événements populaires en premier (artistes connus, stades, etc.)
   const [frResult, esResult, itResult, deResult] = await Promise.allSettled([
-    searchEvents({ keyword, countryCode: 'FR', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'date,asc' }),
-    searchEvents({ keyword, countryCode: 'ES', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'date,asc' }),
-    searchEvents({ keyword, countryCode: 'IT', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'date,asc' }),
-    searchEvents({ keyword, countryCode: 'DE', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'date,asc' }),
+    searchEvents({ keyword, countryCode: 'FR', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
+    searchEvents({ keyword, countryCode: 'ES', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
+    searchEvents({ keyword, countryCode: 'IT', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
+    searchEvents({ keyword, countryCode: 'DE', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
   ]);
 
   const allEvents: Event[] = [];
@@ -203,13 +204,18 @@ async function searchMultiCountry(params: {
     }
   }
 
-  // Filtre strict : concerts/festivals/sport + minPrice > 0 (élimine petits événements)
+  // Filtre strict : concerts/festivals/sport + minPrice > 25 (élimine petits événements locaux)
   const ALLOWED_TYPES = ['concert', 'festival', 'sport'];
 
   const seen = new Set<string>();
   const deduped = allEvents
-    .filter(e => ALLOWED_TYPES.includes(e.type) && e.minPrice > 0)
-    .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+    .filter(e => ALLOWED_TYPES.includes(e.type) && e.minPrice > 25)
+    .sort((a, b) => {
+      // Priorité aux grands événements (prix élevé = artiste majeur / stade)
+      const scoreA = (a.maxPrice || 0) + (a.minPrice || 0);
+      const scoreB = (b.maxPrice || 0) + (b.minPrice || 0);
+      return scoreB - scoreA;
+    })
     .filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
     .slice(0, size);
 
