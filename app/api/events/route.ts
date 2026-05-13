@@ -169,6 +169,11 @@ function filterMockEvents(q?: string, city?: string, country?: string, type?: st
   return events.slice(0, size);
 }
 
+// ─── Date du jour (filtre événements futurs uniquement) ───────────────────────
+function today(): string {
+  return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function dedupe(events: Event[], limit: number): Event[] {
   const seen = new Set<string>();
@@ -191,7 +196,8 @@ async function fetchTopConcerts(size = 20): Promise<Event[]> {
         countryCode: cc,
         segmentId: TM_SEGMENTS.music,
         sort: 'relevance,desc',
-        size: Math.ceil(size / 2),        // demande plus, on filtre après
+        size: Math.ceil(size / 2),
+        dateFrom: today(),               // événements futurs uniquement
       })
     )
   );
@@ -236,6 +242,7 @@ async function fetchTopSports(size = 20): Promise<Event[]> {
         segmentId: TM_SEGMENTS.sports,
         sort:       'relevance,desc',
         size:       5,
+        dateFrom:   today(),             // événements futurs uniquement
       })
     )
   );
@@ -287,6 +294,7 @@ async function fetchTopFestivals(size = 20): Promise<Event[]> {
         segmentId:   TM_SEGMENTS.music,
         sort:        'relevance,desc',
         size:        Math.ceil(size / 2),
+        dateFrom:    today(),            // événements futurs uniquement
       })
     )
   );
@@ -333,11 +341,12 @@ async function searchMultiCountry(params: {
   const { keyword, segmentId, dateFrom, dateTo, page, size } = params;
   const perCountry = Math.ceil(size / 4);
 
+  const effectiveDateFrom = dateFrom || today(); // jamais dans le passé
   const [frRes, esRes, itRes, deRes] = await Promise.allSettled([
-    searchEvents({ keyword, countryCode: 'FR', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
-    searchEvents({ keyword, countryCode: 'ES', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
-    searchEvents({ keyword, countryCode: 'IT', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
-    searchEvents({ keyword, countryCode: 'DE', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
+    searchEvents({ keyword, countryCode: 'FR', segmentId, dateFrom: effectiveDateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
+    searchEvents({ keyword, countryCode: 'ES', segmentId, dateFrom: effectiveDateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
+    searchEvents({ keyword, countryCode: 'IT', segmentId, dateFrom: effectiveDateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
+    searchEvents({ keyword, countryCode: 'DE', segmentId, dateFrom: effectiveDateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
   ]);
 
   const all: Event[] = [];
@@ -366,8 +375,10 @@ export async function GET(req: NextRequest) {
   const lng      = sp.get('lng');
   const radius   = parseInt(sp.get('radius') || '50');
   const type     = sp.get('type')     || undefined;
-  const dateFrom = sp.get('dateFrom') || undefined;
-  const dateTo   = sp.get('dateTo')   || undefined;
+  // dateFrom : jamais dans le passé — minimum = aujourd'hui
+  const rawDateFrom = sp.get('dateFrom');
+  const dateFrom = (rawDateFrom && rawDateFrom >= today()) ? rawDateFrom : today();
+  const dateTo   = sp.get('dateTo') || undefined;
   const page     = parseInt(sp.get('page') || '0');
   const size     = Math.min(parseInt(sp.get('size') || '20'), 50);
 
