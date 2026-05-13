@@ -1,26 +1,19 @@
 /**
  * GET /api/events
- * Recherche Ticketmaster — France, Espagne, Italie par défaut.
- * Concerts (Music) + Sports en priorité.
+ * Homepage : TOP événements uniquement
+ *  - Top 20 concerts  : artistes majeurs (minPrice ≥ 50 €)
+ *  - Top 20 sports    : Football, Basket, Formule 1, Tennis uniquement
+ *  - Top 20 festivals : grands festivals (minPrice ≥ 60 €)
  *
- * Query params:
- *   q           — mot-clé (artiste, événement)
- *   city        — ville précise
- *   country     — code pays FR | ES | IT (vide = les 3 pays)
- *   lat, lng    — géolocalisation
- *   radius      — km (défaut: 50)
- *   type        — music | sports | arts
- *   dateFrom    — YYYY-MM-DD
- *   dateTo      — YYYY-MM-DD
- *   page        — numéro de page (défaut: 0)
- *   size        — résultats par page (défaut: 20, max: 50)
+ * Query params optionnels :
+ *   q, city, country, lat, lng, radius, type, dateFrom, dateTo, page, size
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { searchEvents, TM_SEGMENTS } from '@/lib/api/ticketmaster';
 import { Event } from '@/types';
 
-// ─── Mock events FR + ES + IT (fallback si pas de clé) ───────────────────────
+// ─── Mock events fallback ─────────────────────────────────────────────────────
 const MOCK_EVENTS: Event[] = [
   {
     id: 'mock-cold-paris-26',
@@ -96,8 +89,8 @@ const MOCK_EVENTS: Event[] = [
   },
   {
     id: 'mock-milan-f1-26',
-    title: 'Grand Prix d'Italie F1 2026 – Monza',
-    description: 'La cathédrale de la vitesse — le Grand Prix d'Italie à Monza.',
+    title: 'Grand Prix d\'Italie F1 2026 – Monza',
+    description: 'La cathédrale de la vitesse — le Grand Prix d\'Italie à Monza.',
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
     venue: 'Autodromo Nazionale di Monza', city: 'Milan', country: 'Italie',
     date: '2026-09-06', startTime: '15:00:00', type: 'sport', category: 'Motorsport',
@@ -114,11 +107,10 @@ const MOCK_EVENTS: Event[] = [
     artists: ['Taylor Swift'], ticketsAvailable: 150, minPrice: 95, maxPrice: 320,
     latitude: 45.4781, longitude: 9.1239, source: 'ticketmaster',
   },
-  // Allemagne
   {
     id: 'mock-rammstein-berlin-26',
     title: 'Rammstein – Zeit Tour',
-    description: 'Rammstein déploie son show pyrotechnique spectaculaire à l'Olympiastadion de Berlin.',
+    description: 'Rammstein déploie son show pyrotechnique spectaculaire à l\'Olympiastadion de Berlin.',
     image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80',
     venue: 'Olympiastadion Berlin', city: 'Berlin', country: 'Allemagne',
     date: '2026-06-20', startTime: '20:00:00', type: 'concert', category: 'Metal',
@@ -177,7 +169,159 @@ function filterMockEvents(q?: string, city?: string, country?: string, type?: st
   return events.slice(0, size);
 }
 
-// ─── Recherche multi-pays FR + ES + IT + DE en parallèle ─────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function dedupe(events: Event[], limit: number): Event[] {
+  const seen = new Set<string>();
+  return events
+    .filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
+    .slice(0, limit);
+}
+
+function scoreEvent(e: Event): number {
+  return (e.maxPrice || 0) + (e.minPrice || 0);
+}
+
+const COUNTRIES = ['FR', 'ES', 'IT', 'DE'] as const;
+
+// ─── Top Concerts : artistes majeurs (minPrice ≥ 50 €) ───────────────────────
+async function fetchTopConcerts(size = 20): Promise<Event[]> {
+  const results = await Promise.allSettled(
+    COUNTRIES.map(cc =>
+      searchEvents({
+        countryCode: cc,
+        segmentId: TM_SEGMENTS.music,
+        sort: 'relevance,desc',
+        size: Math.ceil(size / 2),        // demande plus, on filtre après
+      })
+    )
+  );
+
+  const all: Event[] = [];
+  for (const r of results) {
+    if (r.status === 'fulfilled' && r.value.success && r.value.data?.events) {
+      all.push(...r.value.data.events);
+    }
+  }
+
+  return dedupe(
+    all
+      .filter(e => e.type === 'concert' && e.minPrice >= 50) // seuil artiste majeur
+      .sort((a, b) => scoreEvent(b) - scoreEvent(a)),
+    size
+  );
+}
+
+// ─── Top Sports : Football, Basket, F1, Tennis uniquement ────────────────────
+// Mots-clés ciblés Ticketmaster — détectés sur la classification genre
+const SPORT_KEYWORDS = [
+  'football',      // foot européen (La Liga, Bundesliga, Serie A, Ligue 1)
+  'soccer',        // terme TM alternatif
+  'basketball',    // EuroLeague, NBA Paris, etc.
+  'formula 1',     // Grand Prix
+  'grand prix',    // F1 / MotoGP
+  'tennis',        // ATP, WTA, Roland-Garros, Wimbledon qualif.
+  'ATP',
+  'Champions League',
+  'UEFA',
+  'NBA',
+] as const;
+
+async function fetchTopSports(size = 20): Promise<Event[]> {
+  // On parallélise : 4 pays × quelques keywords ciblés
+  const searches = SPORT_KEYWORDS.slice(0, 6).flatMap(kw =>
+    COUNTRIES.map(cc =>
+      searchEvents({
+        keyword:    kw,
+        countryCode: cc,
+        segmentId: TM_SEGMENTS.sports,
+        sort:       'relevance,desc',
+        size:       5,
+      })
+    )
+  );
+
+  const results = await Promise.allSettled(searches);
+  const all: Event[] = [];
+  for (const r of results) {
+    if (r.status === 'fulfilled' && r.value.success && r.value.data?.events) {
+      all.push(...r.value.data.events);
+    }
+  }
+
+  // Garder uniquement les disciplines cibles
+  const ALLOWED_CATEGORIES = [
+    'football', 'soccer', 'basketball', 'formula 1', 'motorsport', 'tennis',
+    'f1', 'grand prix', 'football european', 'football club',
+  ];
+  function isSportAllowed(e: Event): boolean {
+    const cat = (e.category || '').toLowerCase();
+    const title = e.title.toLowerCase();
+    return (
+      ALLOWED_CATEGORIES.some(c => cat.includes(c) || title.includes(c)) ||
+      title.includes('formula') || title.includes('grand prix') ||
+      title.includes('tennis') || title.includes('basketball') ||
+      title.includes('champions league') || title.includes('ligue 1') ||
+      title.includes('la liga') || title.includes('serie a') ||
+      title.includes('bundesliga') || title.includes('premier league') ||
+      title.includes('nba') || title.includes('euroleague') ||
+      title.includes('roland') || title.includes('wimbledon') ||
+      title.includes('us open') || title.includes('atp') || title.includes('wta')
+    );
+  }
+
+  return dedupe(
+    all
+      .filter(e => e.type === 'sport' && e.minPrice >= 25 && isSportAllowed(e))
+      .sort((a, b) => scoreEvent(b) - scoreEvent(a)),
+    size
+  );
+}
+
+// ─── Top Festivals : grands festivals uniquement (minPrice ≥ 60 €) ───────────
+async function fetchTopFestivals(size = 20): Promise<Event[]> {
+  const results = await Promise.allSettled(
+    COUNTRIES.map(cc =>
+      searchEvents({
+        keyword:     'festival',
+        countryCode:  cc,
+        segmentId:   TM_SEGMENTS.music,
+        sort:        'relevance,desc',
+        size:        Math.ceil(size / 2),
+      })
+    )
+  );
+
+  const all: Event[] = [];
+  for (const r of results) {
+    if (r.status === 'fulfilled' && r.value.success && r.value.data?.events) {
+      all.push(...r.value.data.events);
+    }
+  }
+
+  return dedupe(
+    all
+      .filter(e =>
+        (e.type === 'festival' || e.type === 'concert') &&
+        e.minPrice >= 60 && // grand festival = billet cher
+        (
+          e.title.toLowerCase().includes('festival') ||
+          e.category?.toLowerCase().includes('festival') ||
+          e.title.toLowerCase().includes('fest') ||
+          e.title.toLowerCase().includes('open air') ||
+          e.title.toLowerCase().includes('summer') ||
+          e.title.toLowerCase().includes('rock am') ||
+          e.title.toLowerCase().includes('lollapalooza') ||
+          e.title.toLowerCase().includes('primavera') ||
+          e.title.toLowerCase().includes('coachella') ||
+          e.title.toLowerCase().includes('tomorrowland')
+        )
+      )
+      .sort((a, b) => scoreEvent(b) - scoreEvent(a)),
+    size
+  );
+}
+
+// ─── Recherche standard (avec filtre + score) pour les recherches manuelles ───
 async function searchMultiCountry(params: {
   keyword?: string;
   segmentId?: string;
@@ -189,55 +333,45 @@ async function searchMultiCountry(params: {
   const { keyword, segmentId, dateFrom, dateTo, page, size } = params;
   const perCountry = Math.ceil(size / 4);
 
-  // sort=relevance,desc → événements populaires en premier (artistes connus, stades, etc.)
-  const [frResult, esResult, itResult, deResult] = await Promise.allSettled([
+  const [frRes, esRes, itRes, deRes] = await Promise.allSettled([
     searchEvents({ keyword, countryCode: 'FR', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
     searchEvents({ keyword, countryCode: 'ES', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
     searchEvents({ keyword, countryCode: 'IT', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
     searchEvents({ keyword, countryCode: 'DE', segmentId, dateFrom, dateTo, page, size: perCountry, sort: 'relevance,desc' }),
   ]);
 
-  const allEvents: Event[] = [];
-  for (const result of [frResult, esResult, itResult, deResult]) {
-    if (result.status === 'fulfilled' && result.value.success && result.value.data?.events) {
-      allEvents.push(...result.value.data.events);
+  const all: Event[] = [];
+  for (const r of [frRes, esRes, itRes, deRes]) {
+    if (r.status === 'fulfilled' && r.value.success && r.value.data?.events) {
+      all.push(...r.value.data.events);
     }
   }
 
-  // Filtre strict : concerts/festivals/sport + minPrice > 25 (élimine petits événements locaux)
-  const ALLOWED_TYPES = ['concert', 'festival', 'sport'];
-
-  const seen = new Set<string>();
-  const deduped = allEvents
-    .filter(e => ALLOWED_TYPES.includes(e.type) && e.minPrice > 25)
-    .sort((a, b) => {
-      // Priorité aux grands événements (prix élevé = artiste majeur / stade)
-      const scoreA = (a.maxPrice || 0) + (a.minPrice || 0);
-      const scoreB = (b.maxPrice || 0) + (b.minPrice || 0);
-      return scoreB - scoreA;
-    })
-    .filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true; })
-    .slice(0, size);
-
-  return deduped;
+  return dedupe(
+    all
+      .filter(e => ['concert', 'festival', 'sport'].includes(e.type) && e.minPrice > 25)
+      .sort((a, b) => scoreEvent(b) - scoreEvent(a)),
+    size
+  );
 }
 
+// ─── Handler principal ────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
 
-  const q        = sp.get('q')       || '';
-  const city     = sp.get('city')    || undefined;
-  const country  = sp.get('country') || undefined;   // FR | ES | IT | vide = tous
+  const q        = sp.get('q')        || '';
+  const city     = sp.get('city')     || undefined;
+  const country  = sp.get('country')  || undefined;
   const lat      = sp.get('lat');
   const lng      = sp.get('lng');
   const radius   = parseInt(sp.get('radius') || '50');
-  const type     = sp.get('type')    || undefined;
+  const type     = sp.get('type')     || undefined;
   const dateFrom = sp.get('dateFrom') || undefined;
   const dateTo   = sp.get('dateTo')   || undefined;
   const page     = parseInt(sp.get('page') || '0');
   const size     = Math.min(parseInt(sp.get('size') || '20'), 50);
 
-  // Fallback si pas de clé Ticketmaster
+  // Fallback si pas de clé API
   if (!process.env.TICKETMASTER_API_KEY) {
     const mockResults = filterMockEvents(q, city, country, type, size);
     return NextResponse.json({ success: true, events: mockResults, total: mockResults.length, page: 0, size, totalPages: 1, source: 'mock' });
@@ -263,11 +397,11 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // ── Recherche dans un pays précis ────────────────────────────────────────
+    // ── Recherche dans un pays ou une ville précise ──────────────────────────
     if (country || city) {
       const result = await searchEvents({
         keyword: q || undefined, city, countryCode: country,
-        segmentId, dateFrom, dateTo, page, size, sort: 'date,asc',
+        segmentId, dateFrom, dateTo, page, size, sort: 'relevance,desc',
       });
       if (result.success && result.data?.events?.length) {
         return NextResponse.json(
@@ -277,17 +411,41 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // ── Recherche par défaut : FR + ES + IT ──────────────────────────────────
-    const multiEvents = await searchMultiCountry({ keyword: q || undefined, segmentId, dateFrom, dateTo, page, size });
+    // ── Homepage : TOP événements par catégorie ──────────────────────────────
+    if (!q && !country && !city) {
+      const [concerts, sports, festivals] = await Promise.allSettled([
+        fetchTopConcerts(20),
+        fetchTopSports(20),
+        fetchTopFestivals(20),
+      ]);
 
-    if (multiEvents.length > 0) {
-      return NextResponse.json(
-        { success: true, events: multiEvents, total: multiEvents.length, page: 0, size, totalPages: 1, source: 'ticketmaster' },
-        { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } }
-      );
+      const topConcerts  = concerts.status  === 'fulfilled' ? concerts.value  : [];
+      const topSports    = sports.status    === 'fulfilled' ? sports.value    : [];
+      const topFestivals = festivals.status === 'fulfilled' ? festivals.value : [];
+
+      // Mélange : d'abord les sports, puis concerts, puis festivals (ordre éditorial)
+      const allTop = [...topSports, ...topConcerts, ...topFestivals];
+
+      if (allTop.length > 0) {
+        return NextResponse.json(
+          { success: true, events: allTop, total: allTop.length, page: 0, size: allTop.length, totalPages: 1, source: 'ticketmaster', categories: { concerts: topConcerts.length, sports: topSports.length, festivals: topFestivals.length } },
+          { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60' } }
+        );
+      }
     }
 
-    // Fallback mock si aucun résultat
+    // ── Recherche par mot-clé ────────────────────────────────────────────────
+    if (q) {
+      const multiEvents = await searchMultiCountry({ keyword: q, segmentId, dateFrom, dateTo, page, size });
+      if (multiEvents.length > 0) {
+        return NextResponse.json(
+          { success: true, events: multiEvents, total: multiEvents.length, page: 0, size, totalPages: 1, source: 'ticketmaster' },
+          { headers: { 'Cache-Control': 'public, s-maxage=180' } }
+        );
+      }
+    }
+
+    // Fallback mock
     const mockResults = filterMockEvents(q, city, country, type, size);
     return NextResponse.json(
       { success: true, events: mockResults, total: mockResults.length, page: 0, size, totalPages: 1, source: 'mock_empty' },
