@@ -70,11 +70,11 @@ const CATEGORIES: Category[] = [
 ];
 
 const COLOR = {
-  blue:   { bg: "bg-blue-500/10",   text: "text-blue-400",   border: "border-blue-500/20",   dot: "bg-blue-400"   },
-  purple: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/20", dot: "bg-purple-400" },
-  orange: { bg: "bg-orange-500/10", text: "text-orange-400", border: "border-orange-500/20", dot: "bg-orange-400" },
-  green:  { bg: "bg-green-500/10",  text: "text-green-400",  border: "border-green-500/20",  dot: "bg-green-400"  },
-  pink:   { bg: "bg-pink-500/10",   text: "text-pink-400",   border: "border-pink-500/20",   dot: "bg-pink-400"   },
+  blue:   { bg: "bg-blue-50",   text: "text-blue-600",   border: "border-blue-200",   dot: "bg-blue-500"   },
+  purple: { bg: "bg-violet-50", text: "text-violet-600", border: "border-violet-200", dot: "bg-violet-500" },
+  orange: { bg: "bg-orange-50", text: "text-orange-600", border: "border-orange-200", dot: "bg-orange-500" },
+  green:  { bg: "bg-emerald-50",text: "text-emerald-600",border: "border-emerald-200",dot: "bg-emerald-500"},
+  pink:   { bg: "bg-pink-50",   text: "text-pink-600",   border: "border-pink-200",   dot: "bg-pink-500"   },
 } as Record<string, { bg: string; text: string; border: string; dot: string }>;
 
 // ─── Modal lecture thread ─────────────────────────────────────────────────────
@@ -86,22 +86,22 @@ function ThreadModal({ thread, onClose }: { thread: Thread; onClose: () => void 
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <motion.div
         initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
-        className="relative bg-[#0f0f1a] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
+        className="relative bg-white border border-gray-200 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-xl"
       >
-        <div className="px-6 py-4 border-b border-white/5 flex items-start justify-between gap-4">
-          <h3 className="font-bold text-white leading-snug">{thread.title}</h3>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors flex-shrink-0"><X className="w-5 h-5" /></button>
+        <div className="px-6 py-4 border-b border-gray-100 flex items-start justify-between gap-4">
+          <h3 className="font-semibold text-gray-900 leading-snug">{thread.title}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors flex-shrink-0"><X className="w-5 h-5" /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           <div className="flex gap-3">
-            <div className="w-9 h-9 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-bold flex-shrink-0">{thread.avatar}</div>
+            <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0">{thread.avatar}</div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-white text-sm">{thread.author}</span>
-                <span className="text-xs text-white/30 flex items-center gap-1"><Clock className="w-3 h-3" />{thread.date}</span>
+                <span className="font-semibold text-gray-900 text-sm">{thread.author}</span>
+                <span className="text-xs text-gray-400 flex items-center gap-1"><Clock className="w-3 h-3" />{thread.date}</span>
               </div>
-              <p className="text-white/70 text-sm leading-relaxed">{thread.preview} N'hésitez pas à partager vos astuces et retours d'expérience !</p>
-              <button onClick={() => setLiked(!liked)} className={`mt-3 flex items-center gap-1.5 text-xs transition-colors ${liked ? "text-blue-400" : "text-white/30 hover:text-white/60"}`}>
+              <p className="text-gray-700 text-sm leading-relaxed">{thread.preview} N'hésitez pas à partager vos astuces et retours d'expérience !</p>
+              <button onClick={() => setLiked(!liked)} className={`mt-3 flex items-center gap-1.5 text-xs transition-colors ${liked ? "text-blue-600" : "text-gray-400 hover:text-gray-600"}`}>
                 <ThumbsUp className="w-3.5 h-3.5" /> {thread.likes + (liked ? 1 : 0)} j'aime
               </button>
             </div>
@@ -110,22 +110,22 @@ function ThreadModal({ thread, onClose }: { thread: Thread; onClose: () => void 
             { av: "PD", name: "Pierre D.", text: "Super sujet ! Moi j'ai eu une très bonne expérience, je recommande vivement de réserver à l'avance surtout pour les grands événements.", time: "il y a 1h" },
             { av: "LK", name: "Laura K.", text: "Totalement d'accord. Pour les festivals notamment, les hôtels aux alentours se remplissent très vite. On s'y prend toujours 3 mois avant.", time: "il y a 45min" },
           ].map((r, i) => (
-            <div key={i} className="flex gap-3 pl-4 border-l border-white/5">
-              <div className="w-8 h-8 rounded-full bg-white/5 text-white/50 flex items-center justify-center text-xs font-bold flex-shrink-0">{r.av}</div>
+            <div key={i} className="flex gap-3 pl-4 border-l border-gray-200">
+              <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-xs font-bold flex-shrink-0">{r.av}</div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-white/80 text-sm">{r.name}</span>
-                  <span className="text-xs text-white/25">{r.time}</span>
+                  <span className="font-semibold text-gray-800 text-sm">{r.name}</span>
+                  <span className="text-xs text-gray-400">{r.time}</span>
                 </div>
-                <p className="text-white/50 text-sm">{r.text}</p>
+                <p className="text-gray-600 text-sm">{r.text}</p>
               </div>
             </div>
           ))}
         </div>
-        <div className="px-6 py-4 border-t border-white/5 flex gap-3">
+        <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
           <input type="text" value={reply} onChange={e => setReply(e.target.value)} placeholder="Votre réponse…"
-            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/50" />
-          <button disabled={!reply.trim()} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl transition-colors">
+            className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-400" />
+          <button disabled={!reply.trim()} className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl transition-colors">
             <Send className="w-4 h-4" />
           </button>
         </div>
@@ -154,25 +154,25 @@ export default function ForumPage() {
   const totalReplies = CATEGORIES.reduce((s, c) => s + c.threads.reduce((r, t) => r + t.replies, 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen bg-gray-50">
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-b from-[#0d0d20] to-[#0a0a0f] border-b border-white/5 pt-24 pb-8 px-4">
+      <div className="bg-white border-b border-gray-200 pt-20 pb-6 px-4">
         <div className="max-w-6xl mx-auto">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-white/40 hover:text-white text-sm mb-5 transition-colors">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-gray-400 hover:text-gray-700 text-sm mb-5 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Retour
           </Link>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <MessageSquare className="w-6 h-6 text-blue-400" />
-                <h1 className="text-2xl font-bold text-white">Forum Eventrip</h1>
+                <MessageSquare className="w-5 h-5 text-blue-600" />
+                <h1 className="text-xl font-bold text-gray-900">Forum Eventrip</h1>
               </div>
-              <p className="text-white/40 text-sm">Échangez avec la communauté — conseils voyage, bonnes adresses, retours d'événements.</p>
-              <div className="flex gap-5 mt-3 text-sm text-white/30">
-                <span><strong className="text-white/50">{CATEGORIES.reduce((s, c) => s + c.threads.length, 0)}</strong> sujets</span>
-                <span><strong className="text-white/50">{totalReplies}</strong> réponses</span>
-                <span><strong className="text-white/50">5</strong> catégories</span>
+              <p className="text-gray-500 text-sm">Échangez avec la communauté — conseils voyage, bonnes adresses, retours d'événements.</p>
+              <div className="flex gap-5 mt-2 text-sm text-gray-400">
+                <span><strong className="text-gray-600">{CATEGORIES.reduce((s, c) => s + c.threads.length, 0)}</strong> sujets</span>
+                <span><strong className="text-gray-600">{totalReplies}</strong> réponses</span>
+                <span><strong className="text-gray-600">5</strong> catégories</span>
               </div>
             </div>
             <Button variant="primary" size="md" onClick={() => setShowNew(true)} className="flex items-center gap-2">
@@ -187,13 +187,13 @@ export default function ForumPage() {
         <div className="flex gap-6 items-start">
 
           {/* ── Sidebar gauche : catégories ─────────────────────────────────── */}
-          <aside className="w-72 flex-shrink-0 sticky top-24 space-y-1.5">
-            <p className="text-[11px] font-bold text-white/25 uppercase tracking-widest px-3 mb-3">Catégories</p>
+          <aside className="w-64 flex-shrink-0 sticky top-24 space-y-1">
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-3 mb-3">Catégories</p>
             {CATEGORIES.map(cat => {
-              const Icon    = cat.icon;
-              const c       = COLOR[cat.color];
+              const Icon     = cat.icon;
+              const c        = COLOR[cat.color];
               const isActive = activeCategory === cat.id;
-              const last    = lastThread(cat);
+              const last     = lastThread(cat);
               return (
                 <button
                   key={cat.id}
@@ -201,25 +201,24 @@ export default function ForumPage() {
                   className={`w-full text-left px-3 py-3 rounded-xl border transition-all ${
                     isActive
                       ? `${c.bg} ${c.border} border`
-                      : "border-transparent hover:bg-white/5"
+                      : "border-transparent hover:bg-white hover:border-gray-200 border"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 mb-1.5">
                     <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${c.bg}`}>
                       <Icon className={`w-3.5 h-3.5 ${c.text}`} />
                     </div>
-                    <span className={`font-semibold text-sm ${isActive ? "text-white" : "text-white/60"}`}>{cat.title}</span>
+                    <span className={`font-semibold text-sm ${isActive ? "text-gray-900" : "text-gray-600"}`}>{cat.title}</span>
                     <span className={`ml-auto text-[11px] font-bold px-1.5 py-0.5 rounded-md ${c.bg} ${c.text}`}>
                       {cat.threads.length}
                     </span>
                   </div>
-                  {/* Dernier message */}
                   <div className="pl-9">
                     <div className="flex items-center gap-1.5">
                       <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.dot}`} />
-                      <span className="text-[11px] text-white/30 truncate">{last.title}</span>
+                      <span className="text-[11px] text-gray-400 truncate">{last.title}</span>
                     </div>
-                    <span className="text-[10px] text-white/20 pl-3">{last.author} · {last.date}</span>
+                    <span className="text-[10px] text-gray-400 pl-3">{last.author} · {last.date}</span>
                   </div>
                 </button>
               );
@@ -234,13 +233,13 @@ export default function ForumPage() {
               const Icon = cat.icon;
               const c = COLOR[cat.color];
               return (
-                <div className={`flex items-center gap-3 px-5 py-4 rounded-xl border ${c.bg} ${c.border} mb-4`}>
+                <div className={`flex items-center gap-3 px-5 py-4 rounded-xl border ${c.bg} ${c.border} mb-3`}>
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${c.bg}`}>
                     <Icon className={`w-5 h-5 ${c.text}`} />
                   </div>
                   <div>
-                    <h2 className="font-bold text-white">{cat.title}</h2>
-                    <p className="text-xs text-white/40">{cat.description}</p>
+                    <h2 className="font-semibold text-gray-900 text-sm">{cat.title}</h2>
+                    <p className="text-xs text-gray-500">{cat.description}</p>
                   </div>
                   <button onClick={() => setShowNew(true)} className={`ml-auto flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${c.bg} ${c.text} border ${c.border} hover:opacity-80 transition-opacity`}>
                     <Plus className="w-3.5 h-3.5" /> Créer un sujet
@@ -250,21 +249,21 @@ export default function ForumPage() {
             })()}
 
             {/* Barre de recherche */}
-            <div className="relative mb-4">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25 pointer-events-none" />
+            <div className="relative mb-3">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Rechercher dans cette catégorie…"
-                className="w-full bg-white/[0.04] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-blue-500/50 transition-colors"
+                className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
               />
             </div>
 
             {/* Liste des threads */}
-            <div className="bg-white/[0.02] border border-white/8 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               {/* En-tête colonnes */}
-              <div className="grid grid-cols-[1fr_80px_70px] gap-4 px-5 py-2.5 border-b border-white/5 text-[11px] font-bold text-white/25 uppercase tracking-widest">
+              <div className="grid grid-cols-[1fr_80px_70px] gap-4 px-5 py-2.5 border-b border-gray-100 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
                 <span>Sujet</span>
                 <span className="text-center">Rép.</span>
                 <span className="text-center">Vues</span>
@@ -273,7 +272,7 @@ export default function ForumPage() {
               <AnimatePresence mode="wait">
                 <motion.div key={activeCategory + searchQuery} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                   {visibleThreads.length === 0 && (
-                    <div className="px-5 py-10 text-center text-white/30 text-sm">
+                    <div className="px-5 py-10 text-center text-gray-400 text-sm">
                       Aucun sujet ne correspond à votre recherche.
                     </div>
                   )}
@@ -283,7 +282,7 @@ export default function ForumPage() {
                       <button
                         key={thread.id}
                         onClick={() => setActiveThread(thread)}
-                        className={`w-full grid grid-cols-[1fr_80px_70px] gap-4 px-5 py-4 text-left border-t border-white/5 hover:bg-white/5 transition-colors group ${idx === 0 ? "border-t-0" : ""}`}
+                        className={`w-full grid grid-cols-[1fr_80px_70px] gap-4 px-5 py-4 text-left border-t border-gray-100 hover:bg-gray-50 transition-colors group ${idx === 0 ? "border-t-0" : ""}`}
                       >
                         {/* Colonne sujet */}
                         <div className="flex items-start gap-3 min-w-0">
@@ -293,16 +292,16 @@ export default function ForumPage() {
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                               {thread.pinned && (
-                                <span className="flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
                                   <Pin className="w-2.5 h-2.5" /> Épinglé
                                 </span>
                               )}
-                              <span className="font-semibold text-white text-sm group-hover:text-blue-300 transition-colors truncate">
+                              <span className="font-semibold text-gray-900 text-sm group-hover:text-blue-600 transition-colors truncate">
                                 {thread.title}
                               </span>
                             </div>
-                            <p className="text-xs text-white/35 line-clamp-1">{thread.preview}</p>
-                            <div className="flex items-center gap-3 mt-1.5 text-[11px] text-white/25">
+                            <p className="text-xs text-gray-500 line-clamp-1">{thread.preview}</p>
+                            <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400">
                               <span>{thread.author}</span>
                               <span className="flex items-center gap-1"><ThumbsUp className="w-3 h-3" />{thread.likes}</span>
                               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{thread.date}</span>
@@ -317,8 +316,8 @@ export default function ForumPage() {
 
                         {/* Vues */}
                         <div className="flex items-center justify-center gap-1">
-                          <Eye className="w-3.5 h-3.5 text-white/20" />
-                          <span className="text-sm text-white/40">{thread.views}</span>
+                          <Eye className="w-3.5 h-3.5 text-gray-300" />
+                          <span className="text-sm text-gray-500">{thread.views}</span>
                         </div>
                       </button>
                     );
@@ -326,8 +325,8 @@ export default function ForumPage() {
                 </motion.div>
               </AnimatePresence>
 
-              <div className="px-5 py-3 border-t border-white/5">
-                <button onClick={() => setShowNew(true)} className="text-xs text-white/25 hover:text-white/50 flex items-center gap-1.5 transition-colors">
+              <div className="px-5 py-3 border-t border-gray-100">
+                <button onClick={() => setShowNew(true)} className="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1.5 transition-colors">
                   <Plus className="w-3.5 h-3.5" /> Créer un nouveau sujet dans cette catégorie
                 </button>
               </div>
@@ -348,21 +347,21 @@ export default function ForumPage() {
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowNew(false)} />
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-[#0f0f1a] border border-white/10 rounded-2xl w-full max-w-lg p-6"
+              className="relative bg-white border border-gray-200 rounded-2xl w-full max-w-lg p-6 shadow-xl"
             >
               <div className="flex items-center justify-between mb-5">
-                <h3 className="font-bold text-white text-lg">Créer un sujet</h3>
-                <button onClick={() => setShowNew(false)} className="text-white/30 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+                <h3 className="font-semibold text-gray-900">Créer un sujet</h3>
+                <button onClick={() => setShowNew(false)} className="text-gray-400 hover:text-gray-700 transition-colors"><X className="w-5 h-5" /></button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs text-white/40 mb-1.5 block">Catégorie</label>
+                  <label className="text-xs text-gray-500 mb-1.5 block font-medium">Catégorie</label>
                   <div className="flex flex-wrap gap-2">
                     {CATEGORIES.map(cat => {
                       const c = COLOR[cat.color];
                       return (
                         <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${activeCategory === cat.id ? `${c.bg} ${c.text} ${c.border}` : "bg-white/5 border-white/10 text-white/40 hover:text-white"}`}>
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${activeCategory === cat.id ? `${c.bg} ${c.text} ${c.border}` : "bg-gray-50 border-gray-200 text-gray-500 hover:text-gray-900"}`}>
                           {cat.title}
                         </button>
                       );
@@ -370,14 +369,14 @@ export default function ForumPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-white/40 mb-1.5 block">Titre du sujet</label>
+                  <label className="text-xs text-gray-500 mb-1.5 block font-medium">Titre du sujet</label>
                   <input type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Ex : Conseils pour Lollapalooza Paris ?"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/50" />
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-400" />
                 </div>
                 <div>
-                  <label className="text-xs text-white/40 mb-1.5 block">Message</label>
+                  <label className="text-xs text-gray-500 mb-1.5 block font-medium">Message</label>
                   <textarea rows={4} value={newBody} onChange={e => setNewBody(e.target.value)} placeholder="Décrivez votre question ou partagez vos conseils…"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/50 resize-none" />
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-400 resize-none" />
                 </div>
                 <div className="flex gap-3 pt-1">
                   <Button variant="ghost" size="md" onClick={() => setShowNew(false)} className="flex-1">Annuler</Button>

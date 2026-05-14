@@ -11,7 +11,6 @@ import { Button } from "./Button";
 import { supabase } from "@/lib/supabase";
 import type { User as SBUser } from "@supabase/supabase-js";
 
-// ─── Structure des menus déroulants ──────────────────────────────────────────
 const NAV_MENUS = [
   {
     id: "concerts",
@@ -19,16 +18,16 @@ const NAV_MENUS = [
     icon: Music2,
     href: "/search?type=concert",
     items: [
-      { label: "Tous les concerts", href: "/search?type=concert",             emoji: "🎵" },
-      { label: "Rock",              href: "/search?type=concert&genre=Rock",  emoji: "🎸" },
-      { label: "Pop",               href: "/search?type=concert&genre=Pop",   emoji: "🎤" },
-      { label: "Electronic",        href: "/search?type=concert&genre=Electronic", emoji: "🎧" },
-      { label: "Hip-Hop / Rap",     href: "/search?type=concert&genre=Hip-Hop",   emoji: "🎤" },
-      { label: "Jazz & Blues",      href: "/search?type=concert&genre=Jazz",       emoji: "🎷" },
-      { label: "Latin",             href: "/search?type=concert&genre=Latin",      emoji: "💃" },
-      { label: "Métal",             href: "/search?type=concert&genre=Metal",      emoji: "🤘" },
-      { label: "Classique",         href: "/search?type=concert&genre=Classical",  emoji: "🎻" },
-      { label: "R&B / Soul",        href: "/search?type=concert&genre=R%26B",      emoji: "🎙️" },
+      { label: "Tous les concerts", href: "/search?type=concert",                  featured: true },
+      { label: "Rock",              href: "/search?type=concert&genre=Rock" },
+      { label: "Pop",               href: "/search?type=concert&genre=Pop" },
+      { label: "Électronique",      href: "/search?type=concert&genre=Electronic" },
+      { label: "Hip-Hop / Rap",     href: "/search?type=concert&genre=Hip-Hop" },
+      { label: "Jazz & Blues",      href: "/search?type=concert&genre=Jazz" },
+      { label: "Latin",             href: "/search?type=concert&genre=Latin" },
+      { label: "Métal",             href: "/search?type=concert&genre=Metal" },
+      { label: "Classique",         href: "/search?type=concert&genre=Classical" },
+      { label: "R&B / Soul",        href: "/search?type=concert&genre=R%26B" },
     ],
   },
   {
@@ -37,14 +36,14 @@ const NAV_MENUS = [
     icon: Trophy,
     href: "/search?type=sport",
     items: [
-      { label: "Tous les sports",   href: "/search?type=sport",                      emoji: "🏆" },
-      { label: "Football",          href: "/search?type=sport&genre=Football",        emoji: "⚽" },
-      { label: "Tennis",            href: "/search?type=sport&genre=Tennis",          emoji: "🎾" },
-      { label: "Basketball",        href: "/search?type=sport&genre=Basketball",      emoji: "🏀" },
-      { label: "Formule 1",         href: "/search?type=sport&genre=Motorsport",      emoji: "🏎️" },
-      { label: "Rugby",             href: "/search?type=sport&genre=Rugby",           emoji: "🏉" },
-      { label: "Cyclisme",          href: "/search?type=sport&genre=Cycling",         emoji: "🚴" },
-      { label: "Athlétisme",        href: "/search?type=sport&genre=Athletics",       emoji: "🏃" },
+      { label: "Tous les sports",   href: "/search?type=sport",                    featured: true },
+      { label: "Football",          href: "/search?type=sport&genre=Football" },
+      { label: "Tennis",            href: "/search?type=sport&genre=Tennis" },
+      { label: "Basketball",        href: "/search?type=sport&genre=Basketball" },
+      { label: "Formule 1",         href: "/search?type=sport&genre=Motorsport" },
+      { label: "Rugby",             href: "/search?type=sport&genre=Rugby" },
+      { label: "Cyclisme",          href: "/search?type=sport&genre=Cycling" },
+      { label: "Athlétisme",        href: "/search?type=sport&genre=Athletics" },
     ],
   },
   {
@@ -53,22 +52,22 @@ const NAV_MENUS = [
     icon: Tent,
     href: "/search?type=festival",
     items: [
-      { label: "Tous les festivals", href: "/search?type=festival",                      emoji: "🎪" },
-      { label: "Musique",            href: "/search?type=festival&genre=Music",           emoji: "🎵" },
-      { label: "Électronique",       href: "/search?type=festival&genre=Electronic",      emoji: "🎧" },
-      { label: "Culturel",           href: "/search?type=festival&genre=Culture",         emoji: "🎭" },
-      { label: "Gastronomique",      href: "/search?type=festival&genre=Food",            emoji: "🍽️" },
-      { label: "Art & Design",       href: "/search?type=festival&genre=Art",             emoji: "🎨" },
+      { label: "Tous les festivals", href: "/search?type=festival",                  featured: true },
+      { label: "Musique",            href: "/search?type=festival&genre=Music" },
+      { label: "Électronique",       href: "/search?type=festival&genre=Electronic" },
+      { label: "Culturel",           href: "/search?type=festival&genre=Culture" },
+      { label: "Gastronomique",      href: "/search?type=festival&genre=Food" },
+      { label: "Art & Design",       href: "/search?type=festival&genre=Art" },
     ],
   },
 ];
 
 export function Navbar() {
-  const [isOpen,       setIsOpen]       = useState(false);
-  const [openMenu,     setOpenMenu]     = useState<string | null>(null);
-  const [user,         setUser]         = useState<SBUser | null>(null);
-  const router                          = useRouter();
-  const navRef                          = useRef<HTMLDivElement>(null);
+  const [isOpen,   setIsOpen]   = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [user,     setUser]     = useState<SBUser | null>(null);
+  const router                  = useRouter();
+  const navRef                  = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
@@ -76,12 +75,9 @@ export function Navbar() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fermer dropdown en cliquant hors de la nav
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (navRef.current && !navRef.current.contains(e.target as Node)) {
-        setOpenMenu(null);
-      }
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setOpenMenu(null);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -96,20 +92,18 @@ export function Navbar() {
   const toggle = (id: string) => setOpenMenu(prev => prev === id ? null : id);
 
   return (
-    <nav ref={navRef} className="fixed top-0 w-full z-50 bg-[#0a0a0f]/90 backdrop-blur-lg border-b border-white/5">
+    <nav ref={navRef} className="fixed top-0 w-full z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl text-white flex-shrink-0">
-            <Ticket className="w-6 h-6 text-blue-400" />
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Eventrip</span>
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl flex-shrink-0">
+            <Ticket className="w-5 h-5 text-blue-600" />
+            <span className="text-blue-600">Eventrip</span>
           </Link>
 
           {/* Desktop nav */}
           <div className="hidden md:flex gap-1 items-center">
-
-            {/* Menus déroulants */}
             {NAV_MENUS.map(menu => {
               const Icon = menu.icon;
               const isActive = openMenu === menu.id;
@@ -119,7 +113,7 @@ export function Navbar() {
                     onClick={() => toggle(menu.id)}
                     onMouseEnter={() => setOpenMenu(menu.id)}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive ? "text-white bg-white/10" : "text-white/60 hover:text-white hover:bg-white/5"
+                      isActive ? "text-blue-600 bg-blue-50" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -130,20 +124,19 @@ export function Navbar() {
                   {isActive && (
                     <div
                       onMouseLeave={() => setOpenMenu(null)}
-                      className="absolute top-full left-0 mt-1 w-52 bg-[#12121e] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                      className="absolute top-full left-0 mt-1 w-52 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
                     >
                       {menu.items.map((item, i) => (
                         <Link
                           key={i}
                           href={item.href}
                           onClick={() => setOpenMenu(null)}
-                          className={`flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-white/5 hover:text-white ${
-                            i === 0
-                              ? "text-white font-semibold border-b border-white/5"
-                              : "text-white/60"
+                          className={`flex items-center px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 ${
+                            item.featured
+                              ? "text-gray-900 font-semibold border-b border-gray-100"
+                              : "text-gray-600 hover:text-gray-900"
                           }`}
                         >
-                          <span>{item.emoji}</span>
                           {item.label}
                         </Link>
                       ))}
@@ -153,10 +146,9 @@ export function Navbar() {
               );
             })}
 
-            {/* Forum */}
             <Link
               href="/forum"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
             >
               <MessageSquare className="w-4 h-4" />
               Forum
@@ -172,7 +164,7 @@ export function Navbar() {
                     <User className="w-4 h-4" /> Mon Profil
                   </Button>
                 </Link>
-                <button onClick={handleSignOut} className="text-white/30 hover:text-red-400 transition-colors" title="Se déconnecter">
+                <button onClick={handleSignOut} className="text-gray-400 hover:text-red-500 transition-colors" title="Se déconnecter">
                   <LogOut className="w-5 h-5" />
                 </button>
               </>
@@ -191,14 +183,14 @@ export function Navbar() {
           </div>
 
           {/* Mobile burger */}
-          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-white/60">
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden p-2 text-gray-500">
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
         {/* Mobile menu */}
         {isOpen && (
-          <div className="md:hidden pb-4 border-t border-white/5 pt-4 space-y-1">
+          <div className="md:hidden pb-4 border-t border-gray-100 pt-4 space-y-1">
             {NAV_MENUS.map(menu => {
               const Icon = menu.icon;
               const isActive = openMenu === menu.id;
@@ -206,21 +198,21 @@ export function Navbar() {
                 <div key={menu.id}>
                   <button
                     onClick={() => toggle(menu.id)}
-                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
                   >
                     <span className="flex items-center gap-2 font-medium text-sm"><Icon className="w-4 h-4" />{menu.label}</span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${isActive ? "rotate-180" : ""}`} />
                   </button>
                   {isActive && (
-                    <div className="ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-3">
+                    <div className="ml-4 mt-1 space-y-0.5 border-l border-gray-200 pl-3">
                       {menu.items.map((item, i) => (
                         <Link
                           key={i}
                           href={item.href}
                           onClick={() => { setIsOpen(false); setOpenMenu(null); }}
-                          className="flex items-center gap-2 px-2 py-2 text-sm text-white/50 hover:text-white transition-colors"
+                          className="flex items-center px-2 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                         >
-                          {item.emoji} {item.label}
+                          {item.label}
                         </Link>
                       ))}
                     </div>
@@ -230,11 +222,11 @@ export function Navbar() {
             })}
 
             <Link href="/forum" onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
               <MessageSquare className="w-4 h-4" /> Forum
             </Link>
 
-            <div className="pt-3 border-t border-white/5 flex flex-col gap-2 mt-2">
+            <div className="pt-3 border-t border-gray-100 flex flex-col gap-2 mt-2">
               {user ? (
                 <>
                   <Link href="/profile" onClick={() => setIsOpen(false)}>
@@ -242,7 +234,7 @@ export function Navbar() {
                       <User className="w-4 h-4" /> Mon Profil
                     </Button>
                   </Link>
-                  <Button variant="ghost" size="md" className="w-full text-red-400" onClick={handleSignOut}>
+                  <Button variant="ghost" size="md" className="w-full text-red-500" onClick={handleSignOut}>
                     <LogOut className="w-4 h-4 mr-2" /> Se déconnecter
                   </Button>
                 </>
