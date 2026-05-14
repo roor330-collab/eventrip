@@ -71,18 +71,13 @@ export default function HomePage() {
     <div className="min-h-screen" style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif" }}>
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-[88vh] flex flex-col justify-center items-center pt-[44px] bg-black overflow-hidden">
-        {/* Subtle radial glow — Apple product page style */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: "radial-gradient(ellipse 80% 60% at 50% 20%, rgba(0,113,227,0.12) 0%, transparent 70%)"
-        }} />
-
-        <div className="relative z-10 w-full max-w-[980px] mx-auto px-5 sm:px-8 text-center">
+      <section className="relative flex flex-col justify-center items-center pt-[44px] overflow-hidden" style={{ background: "#ffffff" }}>
+        <div className="w-full max-w-[980px] mx-auto px-5 sm:px-8 py-24 text-center">
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-[15px] font-medium mb-5"
+            className="text-[15px] font-medium mb-4"
             style={{ color: "#0071e3" }}
           >
             Concerts · Sport · Festivals
@@ -92,7 +87,8 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-[56px] md:text-[80px] font-bold tracking-tight leading-[1.05] text-white mb-5"
+            className="text-[56px] md:text-[80px] font-bold tracking-tight leading-[1.05] mb-5"
+            style={{ color: "#1d1d1f" }}
           >
             Voyagez pour<br />la passion.
           </motion.h1>
@@ -102,7 +98,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-[19px] md:text-[21px] leading-relaxed max-w-[600px] mx-auto mb-10"
-            style={{ color: "#86868b" }}
+            style={{ color: "#6e6e73" }}
           >
             Billets officiels, vol et hôtel — réservez votre séjour événementiel en un seul paiement.
           </motion.p>
@@ -113,7 +109,7 @@ export default function HomePage() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-10"
           >
-            <SearchBar compact={false} dark />
+            <SearchBar compact={false} />
           </motion.div>
 
           <motion.div
@@ -126,18 +122,14 @@ export default function HomePage() {
               <Link
                 key={c.code}
                 href={`/search?country=${c.code}`}
-                className="px-4 py-1.5 rounded-full text-sm transition-all"
-                style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.12)" }}
+                className="px-4 py-1.5 rounded-full text-[13px] transition-all"
+                style={{ background: "#f5f5f7", color: "#6e6e73", border: "1px solid rgba(0,0,0,0.06)" }}
               >
                 {c.name}
               </Link>
             ))}
           </motion.div>
         </div>
-
-        {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
-          style={{ background: "linear-gradient(to bottom, transparent, rgba(0,0,0,0.4))" }} />
       </section>
 
       {/* ── PARTENAIRES ───────────────────────────────────────────────────── */}
