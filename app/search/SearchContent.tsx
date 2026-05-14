@@ -19,11 +19,39 @@ const COUNTRY_FILTERS = [
 ];
 
 const TYPE_FILTERS = [
-  { value: "", label: "Tous", emoji: "✨" },
-  { value: "music", label: "Concerts", emoji: "🎵" },
-  { value: "sports", label: "Football", emoji: "⚽" },
+  { value: "",         label: "Tous",      emoji: "✨" },
+  { value: "concert",  label: "Concerts",  emoji: "🎵" },
+  { value: "sport",    label: "Sport",     emoji: "🏆" },
   { value: "festival", label: "Festivals", emoji: "🎪" },
 ];
+
+const GENRE_FILTERS: Record<string, { value: string; label: string; emoji: string }[]> = {
+  concert: [
+    { value: "Rock", label: "Rock", emoji: "🎸" },
+    { value: "Pop", label: "Pop", emoji: "🎤" },
+    { value: "Electronic", label: "Electronic", emoji: "🎧" },
+    { value: "Hip-Hop", label: "Hip-Hop", emoji: "🎤" },
+    { value: "Jazz", label: "Jazz", emoji: "🎷" },
+    { value: "Latin", label: "Latin", emoji: "💃" },
+    { value: "Metal", label: "Métal", emoji: "🤘" },
+    { value: "Classical", label: "Classique", emoji: "🎻" },
+  ],
+  sport: [
+    { value: "Football", label: "Football", emoji: "⚽" },
+    { value: "Tennis", label: "Tennis", emoji: "🎾" },
+    { value: "Basketball", label: "Basketball", emoji: "🏀" },
+    { value: "Motorsport", label: "Formule 1", emoji: "🏎️" },
+    { value: "Rugby", label: "Rugby", emoji: "🏉" },
+    { value: "Cycling", label: "Cyclisme", emoji: "🚴" },
+  ],
+  festival: [
+    { value: "Music", label: "Musique", emoji: "🎵" },
+    { value: "Electronic", label: "Électronique", emoji: "🎧" },
+    { value: "Culture", label: "Culturel", emoji: "🎭" },
+    { value: "Food", label: "Gastronomique", emoji: "🍽️" },
+    { value: "Art", label: "Art", emoji: "🎨" },
+  ],
+};
 
 export default function SearchContent() {
   const searchParams = useSearchParams();
@@ -35,8 +63,9 @@ export default function SearchContent() {
 
   // Lire les filtres depuis l'URL
   const activeCountry = searchParams.get("country") || "";
-  const activeType = searchParams.get("type") || "";
-  const activeFrom = searchParams.get("from") || "";
+  const activeType    = searchParams.get("type")    || "";
+  const activeGenre   = searchParams.get("genre")   || "";
+  const activeFrom    = searchParams.get("from")    || "";
 
   const setFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -52,12 +81,15 @@ export default function SearchContent() {
     const country = searchParams.get("country") || undefined;
     const type = searchParams.get("type") || undefined;
 
+    const genre   = searchParams.get("genre")   || undefined;
+
     const params = new URLSearchParams({ size: "24", dateFrom: today });
-    if (q) params.set("q", q);
-    if (city) params.set("city", city);
+    if (q)      params.set("q", q);
+    if (city)   params.set("city", city);
     if (country) params.set("country", country);
-    // Pour les festivals, Ticketmaster n'a pas de segment dédié → on filtre après
     if (type && type !== "festival") params.set("type", type);
+    // Le genre sert de keyword pour affiner la recherche TM
+    if (genre && !q) params.set("q", genre);
 
     setLoading(true);
     fetch(`/api/events?${params}`)
@@ -65,8 +97,15 @@ export default function SearchContent() {
       .then(data => {
         if (data.success && data.events) {
           let evts: Event[] = data.events;
-          // Filtre festival côté client
-          if (type === "festival") evts = evts.filter(e => e.type === "festival");
+          // Exclure théâtre et conférences
+          evts = evts.filter(e => ["concert", "sport", "festival"].includes(e.type));
+          // Filtre type côté client
+          if (type) evts = evts.filter(e => e.type === type);
+          // Filtre genre côté client (sur category)
+          if (genre) evts = evts.filter(e =>
+            e.category?.toLowerCase().includes(genre.toLowerCase()) ||
+            e.title?.toLowerCase().includes(genre.toLowerCase())
+          );
           // Filtre prix
           evts = evts.filter(e => e.minPrice <= priceMax);
           setEvents(evts);
@@ -127,7 +166,37 @@ export default function SearchContent() {
               </button>
             ))}
 
-            {/* Budget toggle */}
+            {/* Genre (visible seulement si un type est sélectionné) */}
+          {activeType && GENRE_FILTERS[activeType] && (
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-white/30 text-xs font-medium mr-1">Genre :</span>
+              <button
+                onClick={() => setFilter("genre", "")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                  !activeGenre
+                    ? "bg-blue-600/30 border-blue-500/50 text-blue-300"
+                    : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                Tous
+              </button>
+              {GENRE_FILTERS[activeType].map(g => (
+                <button
+                  key={g.value}
+                  onClick={() => setFilter("genre", g.value)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                    activeGenre === g.value
+                      ? "bg-blue-600/30 border-blue-500/50 text-blue-300"
+                      : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {g.emoji} {g.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Budget toggle */}
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-all ml-auto"
