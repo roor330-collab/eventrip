@@ -2,68 +2,67 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  ArrowRight, Loader2, Ticket, ChevronRight,
-  Music2, Trophy, Tent,
-  Search, Package2, CreditCard,
-  ShieldCheck, BadgeCheck, Lock, Headphones,
-} from "lucide-react";
+import { ArrowRight, Loader2, Ticket, ChevronRight, Music2, Trophy, Tent, ShieldCheck, BadgeCheck, Lock, Headphones, Search, Plane, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { EventCard } from "@/components/ui/EventCard";
 import { Event } from "@/types";
 
+// ─── Catégories
 const CATEGORIES = [
   {
     label: "Concerts",
-    desc: "Pop, Rock, Hip-Hop, Électronique et plus",
-    type: "music",
     icon: Music2,
-    color: "text-blue-600",
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    activeBorder: "border-blue-500",
+    desc: "Pop, Rock, Hip-Hop, Électro",
+    type: "music",
+    bg: "bg-purple-50 hover:bg-purple-100",
+    border: "border-purple-200",
+    text: "text-purple-700",
+    iconColor: "text-purple-500",
+    activering: "ring-purple-400",
   },
   {
     label: "Sport",
-    desc: "Football, Tennis, Formule 1, Basketball, Rugby",
-    type: "sport",
     icon: Trophy,
-    color: "text-emerald-600",
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
-    activeBorder: "border-emerald-500",
+    desc: "Football, Tennis, F1, Basketball, Rugby",
+    type: "sport",
+    bg: "bg-green-50 hover:bg-green-100",
+    border: "border-green-200",
+    text: "text-green-700",
+    iconColor: "text-green-500",
+    activering: "ring-green-400",
   },
   {
     label: "Festivals",
-    desc: "Lollapalooza, Primavera Sound, Rock am Ring",
-    type: "festival",
     icon: Tent,
-    color: "text-violet-600",
-    bg: "bg-violet-50",
-    border: "border-violet-200",
-    activeBorder: "border-violet-500",
+    desc: "Lollapalooza, Primavera, Rock am Ring",
+    type: "festival",
+    bg: "bg-orange-50 hover:bg-orange-100",
+    border: "border-orange-200",
+    text: "text-orange-700",
+    iconColor: "text-orange-500",
+    activering: "ring-orange-400",
   },
 ];
 
 const COUNTRIES = [
-  { code: "FR", flag: "FR", name: "France" },
-  { code: "ES", flag: "ES", name: "Espagne" },
-  { code: "IT", flag: "IT", name: "Italie" },
-  { code: "DE", flag: "DE", name: "Allemagne" },
+  { code: "FR", name: "France" },
+  { code: "ES", name: "Espagne" },
+  { code: "IT", name: "Italie" },
+  { code: "DE", name: "Allemagne" },
 ];
 
 const HOW_IT_WORKS = [
-  { step: "1", icon: Search,   title: "Trouvez votre événement", desc: "Concerts, matchs, festivals en France, Espagne, Italie ou Allemagne." },
-  { step: "2", icon: Package2, title: "Composez votre séjour",   desc: "Sélectionnez vos billets, votre vol et votre hôtel en quelques clics." },
-  { step: "3", icon: CreditCard, title: "Un seul paiement",      desc: "Tout est confirmé instantanément. Il ne reste plus qu'à partir." },
+  { step: "01", icon: Search,      title: "Cherche ton événement", desc: "Concert, match ou festival — en France, Espagne, Italie ou Allemagne." },
+  { step: "02", icon: Plane,       title: "Compose ton séjour",    desc: "Ajoute ton vol, ton hôtel et tes billets en quelques clics." },
+  { step: "03", icon: CreditCard,  title: "Réserve en 1 paiement", desc: "Tout confirmé instantanément. Tu n'as plus qu'à y aller." },
 ];
 
 const TRUST_ITEMS = [
-  { icon: ShieldCheck, title: "Billets officiels garantis",  desc: "Chaque billet provient de billetteries agréées. Aucun risque de contrefaçon." },
-  { icon: BadgeCheck,  title: "Partenaires certifiés",       desc: "Ticketmaster, Fnac Spectacles, See Tickets — les références du secteur." },
-  { icon: Lock,        title: "Paiement sécurisé",           desc: "Chiffrement SSL et protection de l'acheteur à chaque transaction." },
-  { icon: Headphones,  title: "Assistance dédiée",           desc: "Notre équipe vous accompagne avant, pendant et après votre réservation." },
+  { icon: ShieldCheck, title: "Billets officiels garantis", desc: "100 % issus de billetteries certifiées, jamais de revendeurs non vérifiés." },
+  { icon: BadgeCheck,  title: "Partenaires de référence",   desc: "Ticketmaster, Fnac Spectacles, See Tickets et d'autres acteurs agréés." },
+  { icon: Lock,        title: "Paiement sécurisé",          desc: "Chiffrement SSL et protection de l'acheteur à chaque transaction." },
+  { icon: Headphones,  title: "Assistance dédiée",          desc: "Une question avant ou après réservation ? Notre équipe vous répond." },
 ];
 
 export default function HomePage() {
@@ -96,60 +95,68 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
 
-      {/* ── HERO ──────────────────────────────────────────────────────────── */}
-      <section className="relative pt-16 bg-gradient-to-br from-blue-700 to-blue-900 overflow-hidden">
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: "radial-gradient(circle at 70% 50%, #ffffff 0%, transparent 60%)" }} />
+      {/* ── HERO dark ─────────────────────────────────────────────────────── */}
+      <section className="relative min-h-[88vh] flex flex-col justify-center items-center overflow-hidden pt-16 bg-[#0c0e1a]">
+        {/* Background glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-blue-600/15 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-purple-700/10 rounded-full blur-[100px]" />
+        </div>
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-24 text-center">
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 text-center">
+          {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/80 px-4 py-1.5 rounded-full text-sm font-medium mb-8"
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-white/70 px-4 py-2 rounded-full text-sm font-medium mb-8 backdrop-blur-sm"
           >
-            <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             France · Espagne · Italie · Allemagne
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl md:text-6xl font-bold text-white leading-tight mb-5"
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-white"
           >
-            Voyagez pour la passion
+            Voyagez pour{" "}
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              la passion
+            </span>
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-blue-100 max-w-xl mx-auto mb-10"
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="text-lg md:text-xl text-white/55 max-w-2xl mx-auto mb-12"
           >
-            Billets officiels, vol et hôtel réunis en une seule réservation — simple, fiable, sans intermédiaire.
+            Billets · Vol · Hôtel — composez votre séjour événementiel en une seule réservation, sans tracas.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
             className="mb-8"
           >
             <SearchBar compact={false} dark />
           </motion.div>
 
+          {/* Country pills */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="flex flex-wrap justify-center gap-2"
+            className="flex flex-wrap justify-center gap-3"
           >
             {COUNTRIES.map(c => (
               <Link
                 key={c.code}
                 href={`/search?country=${c.code}`}
-                className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-all text-sm text-white/80 hover:text-white"
+                className="px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm text-white/70 hover:text-white"
               >
                 {c.name}
               </Link>
@@ -157,69 +164,81 @@ export default function HomePage() {
           </motion.div>
         </div>
 
-        {/* Vague de transition vers le blanc */}
-        <div className="h-12 bg-gradient-to-b from-transparent to-white" />
+        {/* Scroll hint */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        >
+          <span className="text-xs text-white/30">Explorer</span>
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+            className="w-5 h-8 border border-white/20 rounded-full flex justify-center pt-1"
+          >
+            <div className="w-1 h-2 bg-white/30 rounded-full" />
+          </motion.div>
+        </motion.div>
       </section>
 
-      {/* ── PARTENAIRES ───────────────────────────────────────────────────── */}
-      <section className="bg-white border-b border-gray-100 py-6 px-4">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-12">
+      {/* ── PARTENAIRES STRIP ─────────────────────────────────────────────── */}
+      <div className="bg-gray-50 border-b border-gray-200 py-5 px-4">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-10">
           <span className="text-xs text-gray-400 font-semibold uppercase tracking-widest whitespace-nowrap">
             Billets officiels via
           </span>
           <div className="flex flex-wrap justify-center items-center gap-8">
             {["Ticketmaster", "Fnac Spectacles", "See Tickets", "Viagogo"].map(p => (
-              <span key={p} className="text-gray-400 font-semibold text-sm tracking-wide">{p}</span>
+              <span key={p} className="text-gray-400 font-bold text-base">{p}</span>
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
       {/* ── CATÉGORIES ────────────────────────────────────────────────────── */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-10"
+            className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Que souhaitez-vous vivre ?</h2>
-            <p className="text-gray-500 text-sm">Sélectionnez une catégorie pour découvrir les événements disponibles.</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Que voulez-vous vivre ?</h2>
+            <p className="text-gray-500">Sélectionnez une catégorie pour explorer les événements</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
             {CATEGORIES.map((cat, i) => {
               const Icon = cat.icon;
-              const isActive = activeCategory === cat.type;
               return (
-                <motion.button
-                  key={cat.type}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 }}
-                  onClick={() => setActiveCategory(isActive ? "" : cat.type)}
-                  className={`text-left p-6 rounded-xl border-2 transition-all duration-200 ${
-                    isActive
-                      ? `${cat.bg} ${cat.activeBorder}`
-                      : `bg-white ${cat.border} hover:${cat.bg}`
-                  }`}
-                >
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-4 ${cat.bg}`}>
-                    <Icon className={`w-5 h-5 ${cat.color}`} />
+              <motion.button
+                key={cat.type}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                onClick={() => setActiveCategory(activeCategory === cat.type ? "" : cat.type)}
+                className={`relative p-6 rounded-2xl border text-left transition-all duration-300 ${cat.bg} ${cat.border} ${activeCategory === cat.type ? `ring-2 ${cat.activering}` : ""}`}
+              >
+                <Icon className={`w-8 h-8 mb-3 ${cat.iconColor}`} />
+                <h3 className="text-xl font-bold text-gray-900 mb-1">{cat.label}</h3>
+                <p className={`text-sm ${cat.text}`}>{cat.desc}</p>
+                {activeCategory === cat.type && (
+                  <div className="absolute top-3 right-3 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full" />
                   </div>
-                  <h3 className="text-base font-bold text-gray-900 mb-1">{cat.label}</h3>
-                  <p className={`text-sm ${cat.color}`}>{cat.desc}</p>
-                </motion.button>
+                )}
+              </motion.button>
               );
             })}
           </div>
 
-          {/* Grille événements */}
+          {/* Events grid */}
           {loading ? (
             <div className="flex justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-gray-300" />
+              <Loader2 className="w-10 h-10 animate-spin text-gray-300" />
             </div>
           ) : events.length > 0 ? (
             <>
@@ -230,7 +249,7 @@ export default function HomePage() {
               </div>
               <div className="text-center mt-10">
                 <Link href="/search">
-                  <button className="inline-flex items-center gap-2 px-7 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors">
+                  <button className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-medium transition-all">
                     Voir tous les événements <ArrowRight className="w-4 h-4" />
                   </button>
                 </Link>
@@ -238,105 +257,107 @@ export default function HomePage() {
             </>
           ) : (
             <div className="text-center py-16 text-gray-400">
-              <Ticket className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-              <p className="text-sm">Aucun événement dans cette catégorie pour le moment.</p>
+              <Ticket className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>Aucun événement dans cette catégorie pour le moment.</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* ── CONFIANCE ─────────────────────────────────────────────────────── */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 border-t border-gray-100">
+      {/* ── CONFIANCE / GARANTIES ─────────────────────────────────────────── */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-blue-600">
         <div className="max-w-5xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-10"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Pourquoi choisir Eventrip ?</h2>
-            <p className="text-gray-500 text-sm">Des billets authentiques, des partenaires reconnus, un service pensé pour les voyageurs événementiels.</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+              Des billets officiels, des partenaires de confiance
+            </h2>
+            <p className="text-blue-100 text-sm">
+              Chaque billet vendu sur Eventrip provient directement de billetteries officielles et de partenaires agréés.
+            </p>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {TRUST_ITEMS.map((item, i) => {
               const Icon = item.icon;
               return (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 }}
-                  className="bg-white rounded-xl border border-gray-200 p-5"
-                >
-                  <Icon className="w-6 h-6 text-blue-600 mb-3" />
-                  <h3 className="font-semibold text-gray-900 text-sm mb-1">{item.title}</h3>
-                  <p className="text-gray-500 text-xs leading-relaxed">{item.desc}</p>
-                </motion.div>
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-5"
+              >
+                <Icon className="w-6 h-6 text-white mb-3" />
+                <h3 className="font-bold text-white text-sm mb-1">{item.title}</h3>
+                <p className="text-blue-100 text-xs leading-relaxed">{item.desc}</p>
+              </motion.div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* ── COMMENT ÇA MARCHE ─────────────────────────────────────────────── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-t border-gray-100">
-        <div className="max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Comment ça marche ?</h2>
-            <p className="text-gray-500 text-sm">3 étapes. Un seul paiement.</p>
+      {/* ── COMMENT ÇA MARCHE ────────────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50 border-t border-gray-100">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Comment ça marche ?</h2>
+            <p className="text-gray-500">3 étapes. 1 paiement. 0 prise de tête.</p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {HOW_IT_WORKS.map((item, i) => {
               const Icon = item.icon;
               return (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.12 }}
-                  className="relative text-center md:text-left"
-                >
-                  <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm mb-4">
-                    {item.step}
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                className="relative"
+              >
+                <div className="text-5xl font-bold text-gray-100 mb-2">{item.step}</div>
+                <Icon className="w-6 h-6 text-gray-400 mb-3" />
+                <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+                {i < HOW_IT_WORKS.length - 1 && (
+                  <div className="hidden md:block absolute top-12 -right-4 text-gray-300">
+                    <ChevronRight className="w-8 h-8" />
                   </div>
-                  <Icon className="hidden md:block w-5 h-5 text-gray-300 mb-2" />
-                  <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
-                  {i < HOW_IT_WORKS.length - 1 && (
-                    <div className="hidden md:block absolute top-4 -right-5 text-gray-200">
-                      <ChevronRight className="w-6 h-6" />
-                    </div>
-                  )}
-                </motion.div>
+                )}
+              </motion.div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* ── CTA ───────────────────────────────────────────────────────────── */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-blue-600">
-        <div className="max-w-2xl mx-auto text-center">
-          <motion.div initial={{ opacity: 0, scale: 0.98 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">Prêt pour votre prochain séjour ?</h2>
-            <p className="text-blue-100 mb-8 text-base">Des milliers de voyageurs ont déjà réservé leur prochaine expérience événementielle.</p>
+      {/* ── CTA FINAL ─────────────────────────────────────────────────────── */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white border-t border-gray-100">
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Prêt pour l'expérience ?</h2>
+            <p className="text-gray-500 mb-8 text-lg">Des milliers de voyageurs ont déjà réservé leur prochain séjour événementiel.</p>
             <Link href="/search">
-              <button className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg bg-white text-blue-700 font-bold text-base hover:bg-blue-50 transition-colors">
-                Explorer les événements <ArrowRight className="w-4 h-4" />
+              <button className="inline-flex items-center gap-3 px-10 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-lg transition-all shadow-lg shadow-blue-200">
+                Explorer les événements <ArrowRight className="w-5 h-5" />
               </button>
             </Link>
           </motion.div>
         </div>
       </section>
 
-      {/* ── FOOTER ────────────────────────────────────────────────────────── */}
+      {/* Footer */}
       <footer className="bg-gray-50 border-t border-gray-200 py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="text-gray-400 text-sm">© 2026 Eventrip. Tous droits réservés.</span>
+          <span className="text-gray-400 text-sm">© 2026 Eventrip — Voyagez pour la passion.</span>
           <div className="flex gap-6 text-sm text-gray-400">
-            <a href="/" className="hover:text-gray-700 transition-colors">Conditions générales</a>
+            <a href="/" className="hover:text-gray-700 transition-colors">Conditions</a>
             <a href="/" className="hover:text-gray-700 transition-colors">Confidentialité</a>
             <a href="/" className="hover:text-gray-700 transition-colors">Contact</a>
           </div>
