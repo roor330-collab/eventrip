@@ -16,13 +16,20 @@ interface EventCardProps {
 
 export function EventCard({ event, index = 0 }: EventCardProps) {
   const typeColors: Record<string, string> = {
-    concert: "bg-blue-600",
-    sport: "bg-green-600",
-    festival: "bg-purple-600",
-    theatre: "bg-orange-600",
-    conference: "bg-gray-600",
+    concert: "bg-blue-600", sport: "bg-green-600",
+    festival: "bg-purple-600", theatre: "bg-orange-600", conference: "bg-gray-600",
   };
   const badgeColor = typeColors[event.type] || "bg-blue-600";
+
+  // Pour les sports : afficher la discipline réelle (Tennis, Football…) plutôt que "sport"
+  const badgeLabel =
+    event.type === "sport" && event.category
+      ? event.category
+      : event.type === "concert"
+      ? event.category || "Concert"
+      : event.type === "festival"
+      ? "Festival"
+      : event.type.charAt(0).toUpperCase() + event.type.slice(1);
 
   return (
     <motion.div
@@ -46,8 +53,8 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-        <div className={`absolute top-3 right-3 ${badgeColor} text-white px-3 py-1 rounded-lg text-xs font-semibold capitalize`}>
-          {event.type}
+        <div className={`absolute top-3 right-3 ${badgeColor} text-white px-3 py-1 rounded-lg text-xs font-semibold`}>
+          {badgeLabel}
         </div>
       </div>
 

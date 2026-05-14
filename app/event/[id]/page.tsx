@@ -8,7 +8,7 @@ import {
   MapPin, Calendar, Ticket, Plane, Hotel as HotelIcon,
   Star, ChevronDown, Shield, Loader2, Train,
   Users, Clock, Plus, Minus, ArrowLeft, CheckCircle, Zap,
-  ExternalLink, Flame, PlaneTakeoff,
+  ExternalLink, Flame, PlaneTakeoff, Building2, Navigation, Bus, ParkingCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Event, Hotel, Flight, PackageItem } from "@/types";
@@ -730,8 +730,47 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
           </div>
         )}
         {event.description && (
-          <p className="text-white/50 mb-8 max-w-3xl leading-relaxed text-sm">{event.description}</p>
+          <p className="text-white/50 mb-5 max-w-3xl leading-relaxed text-sm">{event.description}</p>
         )}
+
+        {/* ── Infos pratiques venue ─────────────────────────────────────────── */}
+        {(event as any).venueInfo && (() => {
+          const vi = (event as any).venueInfo as { type: string; location: string; transport: string[]; parking: string };
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-8 p-4 bg-white/[0.03] border border-white/8 rounded-2xl">
+              <div className="flex items-start gap-2.5">
+                <Building2 className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-white/30 font-semibold uppercase tracking-wide mb-0.5">Type de lieu</p>
+                  <p className="text-sm text-white/70">{vi.type}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Navigation className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-white/30 font-semibold uppercase tracking-wide mb-0.5">Localisation</p>
+                  <p className="text-sm text-white/70">{vi.location}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Bus className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-white/30 font-semibold uppercase tracking-wide mb-0.5">Transports</p>
+                  <ul className="space-y-0.5">
+                    {vi.transport.map((t, i) => <li key={i} className="text-sm text-white/70">{t}</li>)}
+                  </ul>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <ParkingCircle className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[11px] text-white/30 font-semibold uppercase tracking-wide mb-0.5">Parking</p>
+                  <p className="text-sm text-white/70">{vi.parking}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Price quick summary */}
         <div className="grid grid-cols-3 gap-3 mb-8">

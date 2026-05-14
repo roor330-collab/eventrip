@@ -138,6 +138,22 @@ const MOCK_EVENTS: Event[] = [
   },
 ];
 
+// ─── Infos pratiques par venue ───────────────────────────────────────────────
+const VENUE_INFO: Record<string, { type: string; location: string; transport: string[]; parking: string }> = {
+  'mock-cold-paris-26':    { type: 'Stade extérieur · 80 000 places', location: 'Saint-Denis, 10 km au nord de Paris', transport: ['RER B & D (Stade de France)', 'Metro 13 (Basilique de Saint-Denis)'], parking: 'Parkings P1–P7 sur site (réservation conseillée)' },
+  'mock-rolgar-paris-26':  { type: 'Stade semi-couvert · 15 000 places', location: 'Boulogne-Billancourt, 8 km à l\'ouest de Paris', transport: ['Metro 9 (Exelmans)', 'Bus 72 & 126'], parking: 'Aucun parking sur site — accès en transport recommandé' },
+  'mock-lolla-paris-26':   { type: 'Site en plein air · 60 000 pers./jour', location: 'Bois de Boulogne, 10 km à l\'ouest de Paris', transport: ['RER C (Boulainvilliers)', 'Bus 244 & navettes festival'], parking: 'Parking Longchamp disponible (payant, capacité limitée)' },
+  'mock-barca-concert-26': { type: 'Stade extérieur · 56 000 places', location: 'Montjuïc, 3 km du centre de Barcelone', transport: ['Bus 150 (Montjuïc)', 'Funiculaire depuis Paral·lel'], parking: 'Parking limité — accès en transport fortement conseillé' },
+  'mock-liga-madrid-26':   { type: 'Stade couvert · 83 000 places', location: 'Quartier Castellana, centre-ville de Madrid', transport: ['Metro 10 (Santiago Bernabéu)', 'Bus 43, 120, 147'], parking: 'Parking souterrain sur site (5 000 places, accès Paseo de la Castellana)' },
+  'mock-primavera-bcn-26': { type: 'Site en plein air · 50 000 pers.', location: 'Bord de mer (Sant Adrià), 8 km du centre', transport: ['Metro L4 (El Maresme / Fòrum)', 'Tramway T4'], parking: 'Aucun parking sur site — accès en transport uniquement' },
+  'mock-rome-concert-26':  { type: 'Site archéologique en plein air · 250 000 pers.', location: 'Centre historique de Rome (Circus Maximus)', transport: ['Metro B (Circo Massimo)', 'Tram 3 & Bus 81'], parking: 'Très limité — accès en transport ou à pied recommandé' },
+  'mock-milan-f1-26':      { type: 'Circuit automobile extérieur', location: 'Monza, 15 km au nord de Milan', transport: ['Train Intercity Milan–Monza (20 min)', 'Navettes depuis Milan Centrale'], parking: 'Grands parkings autour du circuit (réservation obligatoire pour les GP)' },
+  'mock-milan-concert-26': { type: 'Stade extérieur · 80 000 places', location: '7 km au nord-ouest du centre de Milan', transport: ['Metro M5 (San Siro Stadio)', 'Tram 16 depuis Duomo'], parking: 'Parking San Siro disponible (payant, accès Via Harar)' },
+  'mock-rammstein-berlin-26': { type: 'Stade extérieur · 74 000 places', location: '7 km à l\'ouest du centre de Berlin', transport: ['Metro U2 (Olympia-Stadion)', 'S-Bahn S5 & S75'], parking: 'Parking Olympiastadion disponible (payant, accès Olympischer Platz)' },
+  'mock-rockamring-26':    { type: 'Circuit en zone rurale · 90 000 pers./jour', location: 'Nürburg, 80 km au sud de Cologne (zone rurale)', transport: ['Navettes officielles depuis Cologne, Francfort, Bonn', 'Pas de transport régulier'], parking: 'Immenses parkings gratuits sur site (camping car & voiture)' },
+  'mock-bvb-munich-26':    { type: 'Stade extérieur · 81 365 places', location: '3 km au sud du centre de Dortmund', transport: ['Metro U45 & U46 (Stadion)', 'S-Bahn S1 (Dortmund Bf)'], parking: 'Parkings P1–P5 autour du stade (réservation recommandée les jours de match)' },
+};
+
 // ─── Catégories de billets — liste complète triée du plus cher au moins cher ──
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getTicketCategories(event: Event & { priceRanges?: any[] }, soldOut: boolean) {
@@ -220,10 +236,9 @@ function enrichEvent(event: Event & { priceRanges?: any[]; ticketUrl?: string; s
     ...enriched,
     soldOut,
     ticketCategories: getTicketCategories(enriched, soldOut),
-    // ticketUrl transmis tel quel depuis le mapper TM (ev.url)
-    ticketUrl: event.ticketUrl || null,
-    // seatMap image si disponible
-    seatMapUrl: (event as any).seatMap || null,
+    ticketUrl:   event.ticketUrl || null,
+    seatMapUrl:  (event as any).seatMap || null,
+    venueInfo:   VENUE_INFO[event.id] || null,
   };
 }
 

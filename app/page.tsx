@@ -21,10 +21,10 @@ const CATEGORIES = [
     text: "text-purple-300",
   },
   {
-    label: "Football",
-    emoji: "⚽",
-    desc: "Liga, Serie A, Bundesliga, Ligue 1",
-    type: "sports",
+    label: "Sport",
+    emoji: "🏆",
+    desc: "Football, Tennis, F1, Basketball, Rugby",
+    type: "sport",
     gradient: "from-green-600 to-emerald-700",
     bg: "bg-green-600/10 hover:bg-green-600/20",
     border: "border-green-500/30",
@@ -63,7 +63,7 @@ export default function HomePage() {
   useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
     const params = new URLSearchParams({ size: "9", dateFrom: today });
-    if (activeCategory && activeCategory !== "festival") params.set("type", activeCategory === "music" ? "music" : "sports");
+    if (activeCategory && activeCategory !== "festival") params.set("type", activeCategory);
 
     setLoading(true);
     fetch(`/api/events?${params}`)
@@ -106,7 +106,7 @@ export default function HomePage() {
             className="inline-flex items-center gap-2 bg-white/5 border border-white/10 text-white/70 px-4 py-2 rounded-full text-sm font-medium mb-8 backdrop-blur-sm"
           >
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            🇫🇷 🇪🇸 🇮🇹 🇩🇪 &nbsp;·&nbsp; Concerts · Foot · Festivals
+            🇫🇷 🇪🇸 🇮🇹 🇩🇪 &nbsp;·&nbsp; Concerts · Sport · Festivals
           </motion.div>
 
           <motion.h1
