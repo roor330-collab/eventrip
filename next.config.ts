@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["images.ticketmaster.com", "res.cloudinary.com", "s1.ticketm.net"],
+    domains: ["images.ticketmaster.com", "res.cloudinary.com", "s1.ticketm.net", "images.unsplash.com"],
   },
   typescript: {
     ignoreBuildErrors: true,
