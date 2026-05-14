@@ -15,6 +15,13 @@ import { Event, Hotel, Flight, PackageItem } from "@/types";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
+// ─── Couleurs par catégorie (style Ticketmaster) ──────────────────────────────
+const CAT_COLORS = [
+  '#F5A623','#9B59B6','#E91E8C','#3498DB','#2ECC71',
+  '#F1C40F','#E74C3C','#1ABC9C','#E67E22','#27AE60',
+  '#8E44AD','#2980B9','#95A5A6','#16A085','#D35400',
+];
+
 // ─── Villes de départ par pays ────────────────────────────────────────────────
 const DEPARTURE_CITIES: { country: string; flag: string; cities: string[] }[] = [
   { country: "France",    flag: "🇫🇷", cities: ["Paris","Lyon","Marseille","Bordeaux","Toulouse","Nice","Nantes","Strasbourg","Lille","Rennes","Montpellier"] },
@@ -322,27 +329,59 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
             </div>
           </div>
 
+          {/* Plan du lieu */}
+          {(event as any).seatMapUrl && (
+            <div className="rounded-xl overflow-hidden border border-white/10 bg-white">
+              <img
+                src={(event as any).seatMapUrl}
+                alt={`Plan ${event.venue}`}
+                className="w-full object-contain max-h-72"
+              />
+            </div>
+          )}
+
+          {/* Légende couleurs */}
+          <div className="bg-white/[0.03] border border-white/8 rounded-xl px-4 py-3">
+            <p className="text-[11px] text-white/30 font-semibold uppercase tracking-widest mb-2">
+              {event.venue} — Plan de salle
+            </p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+              {cats.map((cat, idx) => (
+                <div key={cat.id} className="flex items-center gap-1.5">
+                  <div
+                    className="w-3 h-3 rounded-sm flex-shrink-0"
+                    style={{ backgroundColor: CAT_COLORS[idx % CAT_COLORS.length] }}
+                  />
+                  <span className="text-[11px] text-white/50 uppercase tracking-wide">{cat.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Category list — style Ticketmaster */}
           <div className="border border-white/10 rounded-xl overflow-hidden max-h-[420px] overflow-y-auto">
             {cats.map((cat, idx) => {
               const isSelected = selectedTicket?.id === cat.id;
               const isSoldOut  = cat.available <= 0;
+              const color      = CAT_COLORS[idx % CAT_COLORS.length];
               return (
                 <button
                   key={cat.id}
                   disabled={isSoldOut}
                   onClick={() => selectTicket(cat)}
-                  className={`w-full flex items-center justify-between px-5 py-3.5 text-left transition-all border-b border-white/5 last:border-b-0 ${
+                  className={`w-full flex items-center justify-between px-4 py-3.5 text-left transition-all border-b border-white/5 last:border-b-0 ${
                     isSoldOut
                       ? "opacity-30 cursor-not-allowed bg-transparent"
                       : isSelected
-                      ? "bg-blue-500/15 border-l-2 border-l-blue-500"
+                      ? "bg-blue-500/10"
                       : idx % 2 === 0
                       ? "bg-white/[0.02] hover:bg-white/5"
                       : "bg-transparent hover:bg-white/5"
                   }`}
+                  style={isSelected ? { borderLeft: `3px solid ${color}` } : { borderLeft: "3px solid transparent" }}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: color }} />
                     {isSelected
                       ? <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />
                       : <div className="w-4 h-4 rounded-full border border-white/20 flex-shrink-0" />
@@ -563,44 +602,64 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
           ) : flights.length > 0 ? (
             <div className="space-y-2">
               {flights.slice(0, 5).map(flight => {
-                const isSelected = selectedFlight?.id === flight.id;
-                const depTime    = flight.departureTime?.slice(11, 16);
-                const arrTime    = flight.arrivalTime?.slice(11, 16);
+                const isSelected    = selectedFlight?.id === flight.id;
+                const depTime       = flight.departureTime?.slice(11, 16);
+                const arrTime       = flight.arrivalTime?.slice(11, 16);
+                const retDepTime    = flight.returnDepartureTime?.slice(11, 16);
+                const retArrTime    = flight.returnArrivalTime?.slice(11, 16);
+                const fmtShort = (d?: string) => d
+                  ? new Date(d + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+                  : '';
                 return (
                   <button
                     key={flight.id}
                     onClick={() => selectFlight(flight)}
-                    className={`w-full rounded-xl border-2 p-4 text-left transition-all flex items-center justify-between gap-4 ${
+                    className={`w-full rounded-xl border-2 p-4 text-left transition-all ${
                       isSelected ? "border-blue-500 bg-blue-500/10" : "border-white/10 hover:border-white/30 hover:bg-white/5"
                     }`}
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-white text-sm">{flight.airline}</span>
+                    {/* Ligne 1 : compagnie + prix */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-white">{flight.airline}</span>
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">A/R</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-white/60 mt-0.5">
-                        <span className="font-medium">{flight.departureAirport}</span>
-                        <span className="text-white/20">⇄</span>
-                        <span className="font-medium">{flight.arrivalAirport}</span>
-                      </div>
-                      <div className="text-xs text-white/30 mt-0.5 flex items-center gap-3">
-                        {depTime && arrTime && <span><Clock className="w-3 h-3 inline mr-1" />{depTime} → {arrTime}</span>}
-                        <span className={flight.stops === 0 ? "text-green-400" : "text-white/30"}>
-                          {flight.stops === 0 ? "✈ Direct" : `${flight.stops} escale(s)`}
+                        <span className={`text-xs font-medium ${flight.stops === 0 ? "text-green-400" : "text-white/40"}`}>
+                          {flight.stops === 0 ? "✈ Direct" : `${flight.stops} escale`}
                         </span>
                       </div>
-                      {flight.returnDate && (
-                        <div className="text-xs text-white/20 mt-0.5">
-                          Retour : {new Date(flight.returnDate + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                        </div>
-                      )}
+                      <div className="text-right flex-shrink-0 ml-4">
+                        <div className="font-bold text-blue-400 text-lg leading-tight">{formatPrice(flight.price * ticketQty)}</div>
+                        <div className="text-[11px] text-white/30">{ticketQty} pers. · A/R</div>
+                      </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="font-bold text-blue-400 text-lg">{formatPrice(flight.price * ticketQty)}</div>
-                      <div className="text-xs text-white/20">{ticketQty} pers. · A/R</div>
-                      {isSelected && <div className="mt-1 text-xs font-semibold text-blue-400 flex items-center gap-1 justify-end"><CheckCircle className="w-3.5 h-3.5" /> Sélectionné</div>}
+
+                    {/* Ligne 2 : ALLER */}
+                    <div className="flex items-center gap-2 py-2 border-t border-white/5 text-sm">
+                      <span className="text-[10px] font-bold text-green-400 uppercase w-11 flex-shrink-0">↗ Aller</span>
+                      <span className="font-semibold text-white/50 text-xs w-8">{flight.departureAirport}</span>
+                      <span className="font-mono font-bold text-white">{depTime}</span>
+                      <span className="text-white/20 text-xs">→</span>
+                      <span className="font-mono font-bold text-white">{arrTime}</span>
+                      <span className="font-semibold text-white/50 text-xs w-8">{flight.arrivalAirport}</span>
+                      <span className="ml-auto text-xs text-white/30 flex-shrink-0">{fmtShort(flightDepDate)}</span>
                     </div>
+
+                    {/* Ligne 3 : RETOUR */}
+                    <div className="flex items-center gap-2 py-2 border-t border-white/5 text-sm">
+                      <span className="text-[10px] font-bold text-orange-400 uppercase w-11 flex-shrink-0">↙ Retour</span>
+                      <span className="font-semibold text-white/50 text-xs w-8">{flight.arrivalAirport}</span>
+                      <span className="font-mono font-bold text-white">{retDepTime || depTime}</span>
+                      <span className="text-white/20 text-xs">→</span>
+                      <span className="font-mono font-bold text-white">{retArrTime || arrTime}</span>
+                      <span className="font-semibold text-white/50 text-xs w-8">{flight.departureAirport}</span>
+                      <span className="ml-auto text-xs text-white/30 flex-shrink-0">{fmtShort(flight.returnDate)}</span>
+                    </div>
+
+                    {isSelected && (
+                      <div className="mt-2 pt-2 border-t border-white/5 text-xs font-semibold text-blue-400 flex items-center gap-1">
+                        <CheckCircle className="w-3.5 h-3.5" /> Sélectionné
+                      </div>
+                    )}
                   </button>
                 );
               })}
