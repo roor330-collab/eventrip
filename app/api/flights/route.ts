@@ -84,7 +84,13 @@ function getDuration(fromIATA: string, toIATA: string): number {
     || 120; // défaut 2h
 }
 
-function getMockFlights(from: string, to: string, date: string, adults: number) {
+function addDays(date: string, days: number): string {
+  const d = new Date(date + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+function getMockFlights(from: string, to: string, date: string, adults: number, returnDays = 1) {
   const fromIATA = CITY_IATA[from] || 'CDG';
   const toIATA   = CITY_IATA[to]   || 'BCN';
   const duration = getDuration(fromIATA, toIATA);
@@ -100,52 +106,31 @@ function getMockFlights(from: string, to: string, date: string, adults: number) 
 
   const departures = ['06:30', '09:15', '12:40', '16:55', '19:20'];
 
+  const retDate   = addDays(date, returnDays);
+  // Prix A/R = aller × 1.85 (remise groupe A/R)
+  const mkFlight  = (id: string, airline: string, fn: string, dep: string, factor: number, stop = 0, arrIATA = toIATA) => ({
+    id, airline, flightNumber: fn,
+    departureAirport: fromIATA, arrivalAirport: arrIATA,
+    departureTime:    `${date}T${dep}:00`,
+    arrivalTime:      `${date}T${addMinutes(dep, duration + (stop ? 60 : 0))}:00`,
+    // retour
+    returnDate:        retDate,
+    returnDepartureTime: `${retDate}T${dep}:00`,
+    returnArrivalTime:   `${retDate}T${addMinutes(dep, duration + (stop ? 60 : 0))}:00`,
+    // prix A/R par personne
+    price:       Math.round(base * factor * 1.85),
+    priceOneWay: Math.round(base * factor),
+    duration: duration + (stop ? 60 : 0),
+    stops: stop,
+    availability: Math.floor(7 + Math.random() * 22),
+  });
+
   return [
-    {
-      id: `mock-${fromIATA}-${toIATA}-af`,
-      airline: 'Air France', flightNumber: `AF${100 + Math.floor(Math.random() * 900)}`,
-      departureAirport: fromIATA, arrivalAirport: toIATA,
-      departureTime: `${date}T${departures[0]}:00`,
-      arrivalTime:   `${date}T${addMinutes(departures[0], duration)}:00`,
-      price: Math.round(base * 1.3),
-      duration, stops: 0, availability: 7,
-    },
-    {
-      id: `mock-${fromIATA}-${toIATA}-vy`,
-      airline: 'Vueling', flightNumber: `VY${2000 + Math.floor(Math.random() * 999)}`,
-      departureAirport: fromIATA, arrivalAirport: toIATA,
-      departureTime: `${date}T${departures[1]}:00`,
-      arrivalTime:   `${date}T${addMinutes(departures[1], duration)}:00`,
-      price: Math.round(base * 0.95),
-      duration, stops: 0, availability: 14,
-    },
-    {
-      id: `mock-${fromIATA}-${toIATA}-fr`,
-      airline: 'Ryanair', flightNumber: `FR${3000 + Math.floor(Math.random() * 999)}`,
-      departureAirport: fromIATA, arrivalAirport: toIATA,
-      departureTime: `${date}T${departures[2]}:00`,
-      arrivalTime:   `${date}T${addMinutes(departures[2], duration)}:00`,
-      price: Math.round(base * 0.65),
-      duration, stops: 0, availability: 28,
-    },
-    {
-      id: `mock-${fromIATA}-${toIATA}-u2`,
-      airline: 'easyJet', flightNumber: `U2${4000 + Math.floor(Math.random() * 999)}`,
-      departureAirport: fromIATA, arrivalAirport: toIATA,
-      departureTime: `${date}T${departures[3]}:00`,
-      arrivalTime:   `${date}T${addMinutes(departures[3], duration)}:00`,
-      price: Math.round(base * 0.85),
-      duration, stops: 0, availability: 19,
-    },
-    {
-      id: `mock-${fromIATA}-${toIATA}-lh`,
-      airline: 'Lufthansa', flightNumber: `LH${5000 + Math.floor(Math.random() * 999)}`,
-      departureAirport: fromIATA, arrivalAirport: 'FRA',
-      departureTime: `${date}T${departures[4]}:00`,
-      arrivalTime:   `${date}T${addMinutes(departures[4], duration + 60)}:00`,
-      price: Math.round(base * 1.1),
-      duration: duration + 60, stops: 1, availability: 11,
-    },
+    mkFlight(`mock-${fromIATA}-${toIATA}-af`, 'Air France', `AF${100 + Math.floor(Math.random() * 900)}`, departures[0], 1.3),
+    mkFlight(`mock-${fromIATA}-${toIATA}-vy`, 'Vueling',    `VY${2000 + Math.floor(Math.random() * 999)}`, departures[1], 0.95),
+    mkFlight(`mock-${fromIATA}-${toIATA}-fr`, 'Ryanair',    `FR${3000 + Math.floor(Math.random() * 999)}`, departures[2], 0.65),
+    mkFlight(`mock-${fromIATA}-${toIATA}-u2`, 'easyJet',    `U2${4000 + Math.floor(Math.random() * 999)}`, departures[3], 0.85),
+    mkFlight(`mock-${fromIATA}-${toIATA}-lh`, 'Lufthansa',  `LH${5000 + Math.floor(Math.random() * 999)}`, departures[4], 1.1, 1, 'FRA'),
   ].sort((a, b) => a.price - b.price);
 }
 
@@ -204,7 +189,7 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Fallback mock réaliste ────────────────────────────────────────────────────
-  const mockFlights = getMockFlights(from, to, date, adults);
+  const mockFlights = getMockFlights(from, to, date, adults, returnDays);
   return NextResponse.json({
     success: true,
     flights: mockFlights,
