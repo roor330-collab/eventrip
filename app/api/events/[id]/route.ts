@@ -132,7 +132,7 @@ const MOCK_EVENTS: Event[] = [
     description: 'Le choc au sommet de la Bundesliga dans l\'atmosphère incandescente du Signal Iduna Park. Le Mur Jaune crée l\'ambiance la plus intense du football européen.',
     image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80',
     venue: 'Signal Iduna Park', city: 'Dortmund', country: 'Allemagne',
-    date: '2026-04-25', startTime: '18:30:00', type: 'sport', category: 'Football',
+    date: '2026-11-07', startTime: '18:30:00', type: 'sport', category: 'Football',
     artists: [], ticketsAvailable: 94, minPrice: 45, maxPrice: 350,
     latitude: 51.4926, longitude: 7.4517, source: 'ticketmaster',
   },
@@ -140,7 +140,7 @@ const MOCK_EVENTS: Event[] = [
 
 // ─── Catégories de billets basées sur les vraies plages de prix Ticketmaster ──
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getTicketCategories(event: Event & { priceRanges?: any[] }) {
+function getTicketCategories(event: Event & { priceRanges?: any[] }, soldOut: boolean) {
   const base = event.minPrice > 0 ? event.minPrice : 45;
   const top  = event.maxPrice > 0 ? event.maxPrice : base * 4;
 
@@ -162,7 +162,7 @@ function getTicketCategories(event: Event & { priceRanges?: any[] }) {
         name: names[idx] ?? `Catégorie ${idx + 1}`,
         price,
         desc: `Prix Ticketmaster · de ${price}€ à ${Math.round(range.max ?? top)}€`,
-        available: 100 - idx * 20,
+        available: soldOut ? 0 : 100 - idx * 20,
         badge: label,
       };
     });
@@ -173,34 +173,40 @@ function getTicketCategories(event: Event & { priceRanges?: any[] }) {
 
   if (event.type === 'sport') {
     return [
-      { id: 'virages',  name: 'Virages',   price: base,              desc: `Tribune latérale · à partir de ${base}€`,   available: 120, badge: '' },
-      { id: 'tribune',  name: 'Tribune',   price: mid,               desc: `Vue centrale · à partir de ${mid}€`,         available: 64,  badge: 'Populaire' },
-      { id: 'prestige', name: 'Prestige',  price: top,               desc: `Loge VIP + hospitality · jusqu'à ${top}€`,  available: 18,  badge: 'VIP' },
+      { id: 'virages',  name: 'Virages',   price: base, desc: `Tribune latérale · à partir de ${base}€`,  available: soldOut ? 0 : 120, badge: '' },
+      { id: 'tribune',  name: 'Tribune',   price: mid,  desc: `Vue centrale · à partir de ${mid}€`,        available: soldOut ? 0 : 64,  badge: 'Populaire' },
+      { id: 'prestige', name: 'Prestige',  price: top,  desc: `Loge VIP + hospitality · jusqu'à ${top}€`, available: soldOut ? 0 : 18,  badge: 'VIP' },
     ];
   }
   if (event.type === 'festival') {
     return [
-      { id: 'pass1j',  name: '1 Jour',   price: base,                      desc: `Journée au choix · ${base}€`,         available: 350, badge: '' },
-      { id: 'pass3j',  name: '3 Jours',  price: Math.round(base * 2.2),    desc: `Pass complet · ~${Math.round(base * 2.2)}€`, available: 200, badge: 'Populaire' },
-      { id: 'passvip', name: 'VIP Pass', price: top,                        desc: `VIP lounge & open bar · ${top}€`,     available: 45,  badge: 'VIP' },
+      { id: 'pass1j',  name: '1 Jour',   price: base,                   desc: `Journée au choix · ${base}€`,              available: soldOut ? 0 : 350, badge: '' },
+      { id: 'pass3j',  name: '3 Jours',  price: Math.round(base * 2.2), desc: `Pass complet · ~${Math.round(base * 2.2)}€`, available: soldOut ? 0 : 200, badge: 'Populaire' },
+      { id: 'passvip', name: 'VIP Pass', price: top,                     desc: `VIP lounge & open bar · ${top}€`,          available: soldOut ? 0 : 45,  badge: 'VIP' },
     ];
   }
   // concert (default)
   return [
-    { id: 'fosse',   name: 'Fosse',   price: base, desc: `Proche scène, debout · à partir de ${base}€`,   available: 180, badge: '' },
-    { id: 'tribune', name: 'Tribune', price: mid,  desc: `Places assises numérotées · à partir de ${mid}€`, available: 95,  badge: 'Populaire' },
-    { id: 'vip',     name: 'VIP',     price: top,  desc: `Backstage + accès exclusif · ${top}€`,           available: 22,  badge: 'VIP' },
+    { id: 'fosse',   name: 'Fosse',   price: base, desc: `Proche scène, debout · à partir de ${base}€`,    available: soldOut ? 0 : 180, badge: '' },
+    { id: 'tribune', name: 'Tribune', price: mid,  desc: `Places assises numérotées · à partir de ${mid}€`, available: soldOut ? 0 : 95,  badge: 'Populaire' },
+    { id: 'vip',     name: 'VIP',     price: top,  desc: `Backstage + accès exclusif · ${top}€`,            available: soldOut ? 0 : 22,  badge: 'VIP' },
   ];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function enrichEvent(event: Event & { priceRanges?: any[]; ticketUrl?: string }) {
+function enrichEvent(event: Event & { priceRanges?: any[]; ticketUrl?: string; status?: string }) {
   const minPrice = event.minPrice > 0 ? event.minPrice : 45;
   const maxPrice = event.maxPrice > 0 ? event.maxPrice : minPrice * 3;
   const enriched = { ...event, minPrice, maxPrice };
+
+  // Sold-out : TM status "offsale" | "cancelled" | "postponed" ou ticketsAvailable === 0
+  const tmStatus = (event.status || '').toLowerCase();
+  const soldOut  = tmStatus === 'offsale' || tmStatus === 'cancelled' || event.ticketsAvailable === 0;
+
   return {
     ...enriched,
-    ticketCategories: getTicketCategories(enriched),
+    soldOut,
+    ticketCategories: getTicketCategories(enriched, soldOut),
     // ticketUrl transmis tel quel depuis le mapper TM (ev.url)
     ticketUrl: event.ticketUrl || null,
     // seatMap image si disponible
