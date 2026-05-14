@@ -134,14 +134,15 @@ const MOCK_EVENTS: Event[] = [
     description: 'Le choc au sommet de la Bundesliga : BVB contre le Bayern à Signal Iduna Park.',
     image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80',
     venue: 'Signal Iduna Park', city: 'Dortmund', country: 'Allemagne',
-    date: '2026-04-25', startTime: '18:30:00', type: 'sport', category: 'Football',
+    date: '2026-11-07', startTime: '18:30:00', type: 'sport', category: 'Football',
     artists: [], ticketsAvailable: 90, minPrice: 45, maxPrice: 350,
     latitude: 51.4926, longitude: 7.4517, source: 'ticketmaster',
   },
 ];
 
 function filterMockEvents(q?: string, city?: string, country?: string, type?: string, size = 20): Event[] {
-  let events = [...MOCK_EVENTS];
+  const todayStr = today();
+  let events = MOCK_EVENTS.filter(e => e.date >= todayStr); // jamais d'événements passés
   if (q) {
     const lq = q.toLowerCase();
     events = events.filter(e =>
