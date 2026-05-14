@@ -129,14 +129,18 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
   const [showCityMenu,   setShowCityMenu]   = useState(false);
   const [nights,         setNights]         = useState(2);
   const [autoSearched,   setAutoSearched]   = useState(false);
+  const [flightDepDate,  setFlightDepDate]  = useState("");
+  const [flightRetDate,  setFlightRetDate]  = useState("");
 
-  // ── Date de retour = date événement + nuits ──────────────────────────────────
-  const returnDate = useMemo(() => {
-    if (!event?.date) return '';
-    const d = new Date(event.date + 'T00:00:00');
-    d.setDate(d.getDate() + nights);
-    return d.toISOString().split('T')[0];
-  }, [event?.date, nights]);
+  // ── Init dates de vol depuis l'événement ─────────────────────────────────────
+  useEffect(() => {
+    if (event?.date && !flightDepDate) {
+      setFlightDepDate(event.date);
+      const d = new Date(event.date + 'T00:00:00');
+      d.setDate(d.getDate() + 2);
+      setFlightRetDate(d.toISOString().split('T')[0]);
+    }
+  }, [event?.date]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Fetch event ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -169,14 +173,14 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
 
   // ── Fetch flights ─────────────────────────────────────────────────────────────
   const fetchFlights = useCallback(() => {
-    if (!event?.city || !event?.date || !departureCity.trim()) return;
+    if (!event?.city || !flightDepDate || !departureCity.trim()) return;
     setFlightsLoading(true);
     const params = new URLSearchParams({
       from:       departureCity,
       to:         event.city,
-      date:       event.date,
+      date:       flightDepDate,
       adults:     String(ticketQty),
-      returnDays: String(nights),   // vol aller + retour selon durée du séjour
+      returnDate: flightRetDate,
     });
     fetch(`/api/flights?${params}`)
       .then(r => r.json())
@@ -187,15 +191,15 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
       })
       .catch(() => setFlights([]))
       .finally(() => setFlightsLoading(false));
-  }, [event, departureCity, ticketQty, nights]);
+  }, [event, departureCity, ticketQty, flightDepDate, flightRetDate]);
 
   // ── Auto-search vols si ?from= dans l'URL ────────────────────────────────────
   useEffect(() => {
-    if (event && departureCity.trim() && !autoSearched) {
+    if (event && departureCity.trim() && flightDepDate && !autoSearched) {
       setAutoSearched(true);
       fetchFlights();
     }
-  }, [event, departureCity, autoSearched, fetchFlights]);
+  }, [event, departureCity, flightDepDate, autoSearched, fetchFlights]);
 
   // ── Sélection ────────────────────────────────────────────────────────────────
   const selectTicket = (cat: TicketCategory) => {
@@ -318,9 +322,9 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
             </div>
           </div>
 
-          {/* Category cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {cats.map(cat => {
+          {/* Category list — style Ticketmaster */}
+          <div className="border border-white/10 rounded-xl overflow-hidden max-h-[420px] overflow-y-auto">
+            {cats.map((cat, idx) => {
               const isSelected = selectedTicket?.id === cat.id;
               const isSoldOut  = cat.available <= 0;
               return (
@@ -328,30 +332,38 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
                   key={cat.id}
                   disabled={isSoldOut}
                   onClick={() => selectTicket(cat)}
-                  className={`p-4 rounded-xl border-2 text-left transition-all relative ${
+                  className={`w-full flex items-center justify-between px-5 py-3.5 text-left transition-all border-b border-white/5 last:border-b-0 ${
                     isSoldOut
-                      ? "border-white/5 opacity-40 cursor-not-allowed"
+                      ? "opacity-30 cursor-not-allowed bg-transparent"
                       : isSelected
-                      ? "border-blue-500 bg-blue-500/10"
-                      : "border-white/10 hover:border-white/30 hover:bg-white/5"
+                      ? "bg-blue-500/15 border-l-2 border-l-blue-500"
+                      : idx % 2 === 0
+                      ? "bg-white/[0.02] hover:bg-white/5"
+                      : "bg-transparent hover:bg-white/5"
                   }`}
                 >
-                  {cat.badge && (
-                    <span className={`absolute top-2.5 right-2.5 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                      cat.badge === "VIP" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
-                      "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                    }`}>{cat.badge}</span>
-                  )}
-                  <div className="font-bold text-white mb-1">{cat.name}</div>
-                  <div className="text-xs text-white/40 mb-3">{cat.desc}</div>
-                  <div className="text-xl font-bold text-blue-400">{formatPrice(cat.price)}<span className="text-xs text-white/30 font-normal">/pers.</span></div>
-                  <div className="text-xs text-white/30 mt-0.5">× {ticketQty} = {formatPrice(cat.price * ticketQty)}</div>
-                  <div className="text-xs text-white/20 mt-1">{cat.available} places restantes</div>
-                  {isSelected && (
-                    <div className="mt-2 text-xs font-semibold text-blue-400 flex items-center gap-1">
-                      <CheckCircle className="w-3.5 h-3.5" /> Sélectionné
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {isSelected
+                      ? <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                      : <div className="w-4 h-4 rounded-full border border-white/20 flex-shrink-0" />
+                    }
+                    <span className="font-bold text-white text-sm uppercase tracking-wide truncate">
+                      {cat.name}
+                    </span>
+                    {cat.badge && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${
+                        cat.badge === "VIP"
+                          ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                          : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                      }`}>{cat.badge}</span>
+                    )}
+                  </div>
+                  <div className="text-right flex-shrink-0 ml-4">
+                    <span className="font-bold text-white">{formatPrice(cat.price)}</span>
+                    {ticketQty > 1 && (
+                      <div className="text-[11px] text-white/30">× {ticketQty} = {formatPrice(cat.price * ticketQty)}</div>
+                    )}
+                  </div>
                 </button>
               );
             })}
@@ -468,23 +480,33 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
       selected: !!selectedFlight,
       content: (
         <div className="space-y-4">
-          {/* Résumé durée + dates A/R */}
-          {event?.date && (
-            <div className="flex flex-wrap items-center gap-3 bg-blue-500/5 border border-blue-500/20 rounded-xl px-4 py-3 mb-1 text-sm">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-blue-400" />
-                <span className="text-white/60">Aller :</span>
-                <span className="font-semibold text-white">{fmt(event.date)}</span>
-              </div>
-              <span className="text-white/10">·</span>
-              <div className="flex items-center gap-2">
-                <PlaneTakeoff className="w-4 h-4 text-blue-400" />
-                <span className="text-white/60">Retour :</span>
-                <span className="font-semibold text-white">{returnDate ? fmt(returnDate) : `J+${nights}`}</span>
-              </div>
-              <span className="ml-auto text-xs text-white/30">({nights} nuit{nights > 1 ? "s" : ""})</span>
+          {/* Date pickers aller / retour */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-white/40 mb-1.5 flex items-center gap-1.5">
+                <PlaneTakeoff className="w-3.5 h-3.5" /> Date aller
+              </label>
+              <input
+                type="date"
+                value={flightDepDate}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={e => setFlightDepDate(e.target.value)}
+                className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 [color-scheme:dark]"
+              />
             </div>
-          )}
+            <div>
+              <label className="text-xs text-white/40 mb-1.5 flex items-center gap-1.5">
+                <Plane className="w-3.5 h-3.5" /> Date retour
+              </label>
+              <input
+                type="date"
+                value={flightRetDate}
+                min={flightDepDate || new Date().toISOString().split('T')[0]}
+                onChange={e => setFlightRetDate(e.target.value)}
+                className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 [color-scheme:dark]"
+              />
+            </div>
+          </div>
 
           {/* Dropdown ville de départ */}
           <div className="flex gap-2">

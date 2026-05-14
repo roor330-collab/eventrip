@@ -138,59 +138,72 @@ const MOCK_EVENTS: Event[] = [
   },
 ];
 
-// ─── Catégories de billets basées sur les vraies plages de prix Ticketmaster ──
+// ─── Catégories de billets — liste complète triée du plus cher au moins cher ──
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getTicketCategories(event: Event & { priceRanges?: any[] }, soldOut: boolean) {
   const base = event.minPrice > 0 ? event.minPrice : 45;
   const top  = event.maxPrice > 0 ? event.maxPrice : base * 4;
+  const avail = (n: number) => soldOut ? 0 : Math.max(10, 400 - n * 35);
 
-  // Si TM renvoie plusieurs plages de prix on les exploite directement
+  // Si TM renvoie plusieurs plages de prix, on les exploite directement (triées par prix desc)
   if (event.priceRanges && event.priceRanges.length >= 2) {
-    const sorted = [...event.priceRanges].sort((a, b) => (a.min ?? 0) - (b.min ?? 0));
-    return sorted.map((range, idx) => {
-      const price = Math.round(range.min ?? base);
-      const label = range.type?.toLowerCase().includes('vip') ? 'VIP'
-        : range.type?.toLowerCase().includes('standard') ? (idx === 0 ? '' : 'Populaire')
-        : idx === 0 ? '' : idx === sorted.length - 1 ? 'VIP' : 'Populaire';
-      const names = event.type === 'sport'
-        ? ['Virages', 'Tribune', 'Prestige', 'Premium']
-        : event.type === 'festival'
-        ? ['1 Jour', '3 Jours', 'VIP Pass', 'Premium']
-        : ['Fosse', 'Tribune', 'VIP', 'Premium'];
-      return {
+    return [...event.priceRanges]
+      .sort((a, b) => (b.min ?? 0) - (a.min ?? 0))
+      .map((range, idx) => ({
         id: `tier-${idx}`,
-        name: names[idx] ?? `Catégorie ${idx + 1}`,
-        price,
-        desc: `Prix Ticketmaster · de ${price}€ à ${Math.round(range.max ?? top)}€`,
-        available: soldOut ? 0 : 100 - idx * 20,
-        badge: label,
-      };
-    });
+        name: (range.name || range.type || `CATEGORIE ${idx + 1}`).toUpperCase(),
+        price: Math.round(range.min ?? base),
+        desc: '',
+        available: avail(idx),
+        badge: idx === 0 ? 'VIP' : '',
+      }));
   }
 
-  // Fallback : interpolation sur la base des prix min / max Ticketmaster
-  const mid = Math.round(base + (top - base) * 0.45);
+  // Interpolation linéaire sur toute la plage
+  const p = (n: number, total: number) =>
+    Math.round(top - ((top - base) / (total - 1)) * n);
 
   if (event.type === 'sport') {
-    return [
-      { id: 'virages',  name: 'Virages',   price: base, desc: `Tribune latérale · à partir de ${base}€`,  available: soldOut ? 0 : 120, badge: '' },
-      { id: 'tribune',  name: 'Tribune',   price: mid,  desc: `Vue centrale · à partir de ${mid}€`,        available: soldOut ? 0 : 64,  badge: 'Populaire' },
-      { id: 'prestige', name: 'Prestige',  price: top,  desc: `Loge VIP + hospitality · jusqu'à ${top}€`, available: soldOut ? 0 : 18,  badge: 'VIP' },
+    const cats = [
+      'LOS VECINOS', 'CARRE OR ALLEE', 'CARRE OR',
+      'PELOUSE OR DROITE', 'PELOUSE OR GAUCHE', 'PIT A', 'PIT B',
+      'CATEGORIE 1 ALLEE', 'CATEGORIE 2 ALLEE',
+      'CATEGORIE 1', 'CATEGORIE 1 COTE SCENE', 'CATEGORIE 1 VISIBILITE REDUITE',
+      'CATEGORIE 2', 'CATEGORIE 2 COTE SCENE', 'CATEGORIE 2 VISIBILITE REDUITE',
+      'PELOUSE', 'CATEGORIE 3', 'CATEGORIE 3 COTE SCENE', 'CATEGORIE 3 VISIBILITE REDUITE',
     ];
+    return cats.map((name, idx) => ({
+      id: `s${idx}`, name, price: p(idx, cats.length),
+      desc: '', available: avail(idx),
+      badge: idx === 0 ? 'VIP' : idx === 9 ? 'Populaire' : '',
+    }));
   }
+
   if (event.type === 'festival') {
-    return [
-      { id: 'pass1j',  name: '1 Jour',   price: base,                   desc: `Journée au choix · ${base}€`,              available: soldOut ? 0 : 350, badge: '' },
-      { id: 'pass3j',  name: '3 Jours',  price: Math.round(base * 2.2), desc: `Pass complet · ~${Math.round(base * 2.2)}€`, available: soldOut ? 0 : 200, badge: 'Populaire' },
-      { id: 'passvip', name: 'VIP Pass', price: top,                     desc: `VIP lounge & open bar · ${top}€`,          available: soldOut ? 0 : 45,  badge: 'VIP' },
+    const cats = [
+      'VIP PREMIUM 3 JOURS', 'VIP WEEKEND', 'EARLY BIRD VIP',
+      'PASS 3 JOURS', 'PASS WEEKEND', 'PASS 2 JOURS',
+      '1 JOUR VENDREDI', '1 JOUR SAMEDI', '1 JOUR DIMANCHE',
     ];
+    return cats.map((name, idx) => ({
+      id: `f${idx}`, name, price: p(idx, cats.length),
+      desc: '', available: avail(idx),
+      badge: idx === 0 ? 'VIP' : idx === 3 ? 'Populaire' : '',
+    }));
   }
+
   // concert (default)
-  return [
-    { id: 'fosse',   name: 'Fosse',   price: base, desc: `Proche scène, debout · à partir de ${base}€`,    available: soldOut ? 0 : 180, badge: '' },
-    { id: 'tribune', name: 'Tribune', price: mid,  desc: `Places assises numérotées · à partir de ${mid}€`, available: soldOut ? 0 : 95,  badge: 'Populaire' },
-    { id: 'vip',     name: 'VIP',     price: top,  desc: `Backstage + accès exclusif · ${top}€`,            available: soldOut ? 0 : 22,  badge: 'VIP' },
+  const cats = [
+    'CARRE OR VIP', 'FOSSE OR', 'CARRE OR STANDING', 'CARRE OR',
+    'FOSSE NUMEROTEE', 'CATEGORIE 1', 'CATEGORIE 1 COTE SCENE',
+    'CATEGORIE 1 VISIBILITE REDUITE', 'CATEGORIE 2', 'CATEGORIE 2 COTE SCENE',
+    'CATEGORIE 2 VISIBILITE REDUITE', 'FOSSE STANDING', 'CATEGORIE 3',
   ];
+  return cats.map((name, idx) => ({
+    id: `c${idx}`, name, price: p(idx, cats.length),
+    desc: '', available: avail(idx),
+    badge: idx === 0 ? 'VIP' : idx === 5 ? 'Populaire' : '',
+  }));
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

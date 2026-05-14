@@ -90,7 +90,7 @@ function addDays(date: string, days: number): string {
   return d.toISOString().split('T')[0];
 }
 
-function getMockFlights(from: string, to: string, date: string, adults: number, returnDays = 1) {
+function getMockFlights(from: string, to: string, date: string, adults: number, returnDays = 1, returnDateOverride?: string) {
   const fromIATA = CITY_IATA[from] || 'CDG';
   const toIATA   = CITY_IATA[to]   || 'BCN';
   const duration = getDuration(fromIATA, toIATA);
@@ -106,7 +106,7 @@ function getMockFlights(from: string, to: string, date: string, adults: number, 
 
   const departures = ['06:30', '09:15', '12:40', '16:55', '19:20'];
 
-  const retDate   = addDays(date, returnDays);
+  const retDate   = returnDateOverride || addDays(date, returnDays);
   // Prix A/R = aller × 1.85 (remise groupe A/R)
   const mkFlight  = (id: string, airline: string, fn: string, dep: string, factor: number, stop = 0, arrIATA = toIATA) => ({
     id, airline, flightNumber: fn,
@@ -136,11 +136,12 @@ function getMockFlights(from: string, to: string, date: string, adults: number, 
 
 export async function GET(req: NextRequest) {
   const sp         = req.nextUrl.searchParams;
-  const from       = sp.get('from')       || '';
-  const to         = sp.get('to')         || '';
-  const date       = sp.get('date')       || '';
-  const adults     = parseInt(sp.get('adults')     || '2');
-  const returnDays = parseInt(sp.get('returnDays') || '1');
+  const from             = sp.get('from')       || '';
+  const to               = sp.get('to')         || '';
+  const date             = sp.get('date')       || '';
+  const adults           = parseInt(sp.get('adults')     || '2');
+  const returnDays       = parseInt(sp.get('returnDays') || '1');
+  const returnDateParam  = sp.get('returnDate') || '';
 
   if (!from || !to || !date) {
     return NextResponse.json(
@@ -189,7 +190,7 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Fallback mock réaliste ────────────────────────────────────────────────────
-  const mockFlights = getMockFlights(from, to, date, adults, returnDays);
+  const mockFlights = getMockFlights(from, to, date, adults, returnDays, returnDateParam || undefined);
   return NextResponse.json({
     success: true,
     flights: mockFlights,
