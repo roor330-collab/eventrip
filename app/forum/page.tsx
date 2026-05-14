@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageSquare, Plus, ArrowLeft, ThumbsUp, Eye,
   Calendar, Hotel, Plane, UtensilsCrossed,
-  X, Send, Clock, Pin, ChevronRight,
+  X, Send, Clock, Pin, ChevronRight, Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -141,8 +141,15 @@ export default function ForumPage() {
   const [showNew,        setShowNew]         = useState(false);
   const [newTitle,       setNewTitle]        = useState("");
   const [newBody,        setNewBody]         = useState("");
+  const [searchQuery,    setSearchQuery]     = useState("");
 
   const currentCat = CATEGORIES.find(c => c.id === activeCategory) || CATEGORIES[0];
+  const visibleThreads = currentCat.threads.filter(t =>
+    !searchQuery.trim() ||
+    t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    t.preview.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    t.author.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   const lastThread = (cat: Category) => cat.threads[0];
   const totalReplies = CATEGORIES.reduce((s, c) => s + c.threads.reduce((r, t) => r + t.replies, 0), 0);
 
@@ -242,6 +249,18 @@ export default function ForumPage() {
               );
             })()}
 
+            {/* Barre de recherche */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25 pointer-events-none" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Rechercher dans cette catégorie…"
+                className="w-full bg-white/[0.04] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-blue-500/50 transition-colors"
+              />
+            </div>
+
             {/* Liste des threads */}
             <div className="bg-white/[0.02] border border-white/8 rounded-xl overflow-hidden">
               {/* En-tête colonnes */}
@@ -252,8 +271,13 @@ export default function ForumPage() {
               </div>
 
               <AnimatePresence mode="wait">
-                <motion.div key={activeCategory} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  {currentCat.threads.map((thread, idx) => {
+                <motion.div key={activeCategory + searchQuery} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  {visibleThreads.length === 0 && (
+                    <div className="px-5 py-10 text-center text-white/30 text-sm">
+                      Aucun sujet ne correspond à votre recherche.
+                    </div>
+                  )}
+                  {visibleThreads.map((thread, idx) => {
                     const c = COLOR[currentCat.color];
                     return (
                       <button
