@@ -26,9 +26,9 @@ export async function GET(req: NextRequest) {
   const adults   = parseInt(sp.get('adults')      || '1');
   const radius   = parseInt(sp.get('radius')      || '5');
 
-  if (!lat || !lng || !checkIn || !cityCode) {
+  if (!lat || !lng || !checkIn) {
     return NextResponse.json(
-      { success: false, error: 'Paramètres requis : lat, lng, cityCode, checkIn' },
+      { success: false, error: 'Paramètres requis : lat, lng, checkIn' },
       { status: 400 }
     );
   }

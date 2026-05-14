@@ -1,11 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+// Use placeholder values so createClient doesn't throw at build time
+// Real values must be set in production env vars
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key-set-in-production";
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
   console.warn(
-    "Supabase environment variables not set. Some features may not work."
+    "Supabase environment variables not set. Auth features will not work."
   );
 }
 
@@ -73,4 +75,29 @@ export async function deletePackage(packageId: string) {
     .eq("id", packageId);
 
   if (error) throw error;
+}
+
+export async function savePackage(packageData: {
+  user_id: string;
+  event_id: string;
+  event_title: string;
+  event_date: string;
+  event_city: string;
+  event_venue?: string;
+  items: any[];
+  total_price: number;
+  currency: string;
+  passenger_name: string;
+  passenger_email: string;
+  passenger_phone?: string;
+  status: string;
+}): Promise<string> {
+  const { data, error } = await supabase
+    .from("packages")
+    .insert([packageData])
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  return `EVT-${(data.id as string).slice(0, 8).toUpperCase()}`;
 }

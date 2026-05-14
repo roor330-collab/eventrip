@@ -10,16 +10,16 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          50: "#faf5ff",
-          100: "#f3e8ff",
-          200: "#e9d5ff",
-          300: "#d8b4fe",
-          400: "#c084fc",
-          500: "#a855f7",
-          600: "#9333ea",
-          700: "#7e22ce",
-          800: "#6b21a8",
-          900: "#581c87",
+          50: "#eff6ff",
+          100: "#dbeafe",
+          200: "#bfdbfe",
+          300: "#93c5fd",
+          400: "#60a5fa",
+          500: "#3b82f6",
+          600: "#2563eb",
+          700: "#1d4ed8",
+          800: "#1e40af",
+          900: "#1e3a8a",
         },
         accent: {
           50: "#eff6ff",
@@ -80,9 +80,9 @@ const config: Config = {
         },
       },
       boxShadow: {
-        "glow": "0 0 20px rgba(168, 85, 247, 0.3)",
-        "glow-lg": "0 0 40px rgba(168, 85, 247, 0.2)",
-        "inner-glow": "inset 0 0 20px rgba(168, 85, 247, 0.1)",
+        "glow": "0 0 20px rgba(37, 99, 235, 0.2)",
+        "glow-lg": "0 0 40px rgba(37, 99, 235, 0.15)",
+        "inner-glow": "inset 0 0 20px rgba(37, 99, 235, 0.1)",
       },
       borderRadius: {
         "xl": "0.75rem",

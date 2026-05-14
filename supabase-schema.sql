@@ -1,178 +1,193 @@
--- ═══════════════════════════════════════════════════════════════════════════
--- Eventrip — Schéma Supabase
--- Copiez-collez ce SQL dans l'éditeur SQL de votre projet Supabase
--- dashboard.supabase.com → SQL Editor → New Query
--- ═══════════════════════════════════════════════════════════════════════════
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- Eventrip — Schéma Supabase (PostgreSQL)
+--
+-- INSTRUCTIONS D'INSTALLATION :
+-- 1. Créer un projet Supabase : supabase.com/dashboard
+-- 2. Ouvrir SQL Editor → New Query
+-- 3. Copier-coller ce fichier entièrement
+-- 4. Exécuter (RUN)
+--
+-- Tables :
+--   - users                  : Profils utilisateurs
+--   - events                 : Événements
+--   - bookings               : Réservations complètes
+--   - booking_items          : Items dans une réservation (tickets, hôtel, vol)
+--   - transactions           : Historique paiements
+--   - saved_packages         : Packages sauvegardés
+-- ═══════════════════════════════════════════════════════════════════════════════
 
--- Extensions
-create extension if not exists "uuid-ossp";
-create extension if not exists "postgis";  -- pour les requêtes géographiques
+-- ─── Extensions ────────────────────────────────────────────────────────────────
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- ─── Profils utilisateurs ────────────────────────────────────────────────────
-create table if not exists profiles (
-  id          uuid primary key references auth.users(id) on delete cascade,
-  email       text unique not null,
-  first_name  text,
-  last_name   text,
-  phone       text,
-  avatar_url  text,
-  preferences jsonb default '{}',
-  created_at  timestamptz default now(),
-  updated_at  timestamptz default now()
+-- ─── Types enum ────────────────────────────────────────────────────────────────
+CREATE TYPE booking_status AS ENUM ('pending', 'confirmed', 'cancelled', 'completed');
+CREATE TYPE booking_item_type AS ENUM ('ticket', 'flight', 'train', 'hotel');
+CREATE TYPE payment_status AS ENUM ('pending', 'processing', 'completed', 'failed', 'refunded');
+
+-- ─── Table : Users ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  auth_id UUID NOT NULL UNIQUE,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  phone VARCHAR(20),
+  country VARCHAR(2),
+  preferred_currency VARCHAR(3) DEFAULT 'EUR',
+  avatar_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ─── Sessions de recherche (paniers en cours) ────────────────────────────────
-create table if not exists search_sessions (
-  id             uuid primary key default uuid_generate_v4(),
-  user_id        uuid references profiles(id) on delete set null,
-  event_id       text not null,              -- ID Ticketmaster
-  event_date     date,
-  departure_city text,
-  adults         int  default 1,
-  nights         int  default 2,
-  flights_count  int  default 0,
-  hotels_count   int  default 0,
-  fallbacks      text[] default '{}',        -- composants en mode dégradé
-  event_available boolean,
-  last_checked   timestamptz,
-  created_at     timestamptz default now(),
-  expires_at     timestamptz default (now() + interval '24 hours')
+-- ─── Table : Events ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS events (
+  id VARCHAR(100) PRIMARY KEY,
+  external_id VARCHAR(255),
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  venue_name VARCHAR(255),
+  venue_latitude DECIMAL(10, 8),
+  venue_longitude DECIMAL(11, 8),
+  city VARCHAR(100),
+  country VARCHAR(2),
+  event_date DATE NOT NULL,
+  image_url TEXT,
+  ticket_types JSONB,
+  tags TEXT[],
+  url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-create index if not exists idx_sessions_user   on search_sessions(user_id);
-create index if not exists idx_sessions_event  on search_sessions(event_id);
-create index if not exists idx_sessions_expiry on search_sessions(expires_at);
-
--- ─── Packs réservés ──────────────────────────────────────────────────────────
-create table if not exists packages (
-  id               uuid primary key default uuid_generate_v4(),
-  user_id          uuid references profiles(id) on delete set null,
-  session_id       uuid references search_sessions(id) on delete set null,
-  event_id         text not null,
-  event_name       text,
-  event_date       date,
-  venue_name       text,
-  venue_city       text,
-  venue_lat        numeric(10,7),
-  venue_lng        numeric(10,7),
-  -- Billet
-  ticket_zone      text,
-  ticket_price     numeric(10,2),
-  -- Transport
-  flight_id        text,
-  flight_airline   text,
-  flight_departure text,    -- IATA départ
-  flight_arrival   text,    -- IATA arrivée
-  flight_dep_time  timestamptz,
-  flight_arr_time  timestamptz,
-  flight_price     numeric(10,2),
-  -- Hôtel
-  hotel_id         text,
-  hotel_name       text,
-  hotel_city       text,
-  hotel_stars      int,
-  hotel_distance   numeric(6,2),  -- km du venue
-  hotel_check_in   date,
-  hotel_check_out  date,
-  hotel_price      numeric(10,2), -- total nuits
-  -- Pack
-  adults           int  default 1,
-  nights           int  default 2,
-  total_price      numeric(10,2),
-  currency         text default 'EUR',
-  service_fee      numeric(10,2) default 15,
-  status           text default 'draft'  -- draft | confirmed | cancelled | refunded
-    check (status in ('draft','confirmed','cancelled','refunded')),
-  stripe_intent_id text,
-  confirmed_at     timestamptz,
-  created_at       timestamptz default now(),
-  updated_at       timestamptz default now()
+-- ─── Table : Bookings ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS bookings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  confirmation_number VARCHAR(20) NOT NULL UNIQUE,
+  user_id UUID NOT NULL,
+  event_id VARCHAR(100) NOT NULL,
+  event_date DATE NOT NULL,
+  status booking_status DEFAULT 'pending',
+  total_price DECIMAL(10, 2) NOT NULL,
+  currency VARCHAR(3) DEFAULT 'EUR',
+  departure_city VARCHAR(100),
+  departure_date DATE,
+  return_date DATE,
+  passengers INT DEFAULT 1,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP WITH TIME ZONE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE RESTRICT
 );
 
-create index if not exists idx_packages_user   on packages(user_id);
-create index if not exists idx_packages_event  on packages(event_id);
-create index if not exists idx_packages_status on packages(status);
-
--- ─── Voyageurs (passagers d'un pack) ─────────────────────────────────────────
-create table if not exists passengers (
-  id            uuid primary key default uuid_generate_v4(),
-  package_id    uuid references packages(id) on delete cascade,
-  first_name    text not null,
-  last_name     text not null,
-  email         text not null,
-  phone         text,
-  date_of_birth date,
-  nationality   text,
-  passport_no   text,
-  created_at    timestamptz default now()
+-- ─── Table : Booking Items ────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS booking_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  booking_id UUID NOT NULL,
+  item_type booking_item_type NOT NULL,
+  external_id VARCHAR(255),
+  provider VARCHAR(50),
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  quantity INT DEFAULT 1,
+  unit_price DECIMAL(10, 2) NOT NULL,
+  total_price DECIMAL(10, 2) NOT NULL,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
 );
 
-create index if not exists idx_passengers_pkg on passengers(package_id);
-
--- ─── Alertes de disponibilité ────────────────────────────────────────────────
-create table if not exists availability_alerts (
-  id         uuid primary key default uuid_generate_v4(),
-  user_id    uuid references profiles(id) on delete cascade,
-  event_id   text not null,
-  event_name text,
-  type       text not null  -- price_drop | back_in_stock | event_cancelled
-    check (type in ('price_drop','back_in_stock','event_cancelled','rescheduled')),
-  message    text,
-  read       boolean default false,
-  created_at timestamptz default now()
+-- ─── Table : Transactions ────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  booking_id UUID NOT NULL,
+  stripe_payment_intent_id VARCHAR(100),
+  amount DECIMAL(10, 2) NOT NULL,
+  currency VARCHAR(3) DEFAULT 'EUR',
+  status payment_status DEFAULT 'pending',
+  payment_method VARCHAR(50),
+  error_message TEXT,
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  completed_at TIMESTAMP WITH TIME ZONE,
+  FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
 );
 
--- ─── Row Level Security ───────────────────────────────────────────────────────
-alter table profiles          enable row level security;
-alter table search_sessions   enable row level security;
-alter table packages           enable row level security;
-alter table passengers         enable row level security;
-alter table availability_alerts enable row level security;
+-- ─── Table : Saved Packages ────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS saved_packages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL,
+  event_id VARCHAR(100) NOT NULL,
+  event_date DATE NOT NULL,
+  package_data JSONB NOT NULL,
+  name VARCHAR(255),
+  notes TEXT,
+  is_favorite BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+);
 
--- Policies profiles
-create policy "Users can view their own profile"
-  on profiles for select using (auth.uid() = id);
-create policy "Users can update their own profile"
-  on profiles for update using (auth.uid() = id);
+-- ─── Indexes ───────────────────────────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_event_id ON bookings(event_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+CREATE INDEX IF NOT EXISTS idx_bookings_created_at ON bookings(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_booking_items_booking_id ON booking_items(booking_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_booking_id ON transactions(booking_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status);
+CREATE INDEX IF NOT EXISTS idx_saved_packages_user_id ON saved_packages(user_id);
+CREATE INDEX IF NOT EXISTS idx_events_city ON events(city);
+CREATE INDEX IF NOT EXISTS idx_events_event_date ON events(event_date);
 
--- Policies packages
-create policy "Users can view their packages"
-  on packages for select using (auth.uid() = user_id);
-create policy "Users can create packages"
-  on packages for insert with check (auth.uid() = user_id);
-create policy "Users can update draft packages"
-  on packages for update using (auth.uid() = user_id and status = 'draft');
+-- ─── Row Level Security ────────────────────────────────────────────────────────
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE booking_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE saved_packages ENABLE ROW LEVEL SECURITY;
 
--- Policies sessions (lecture/écriture sans auth pour les paniers anonymes)
-create policy "Anyone can create sessions"
-  on search_sessions for insert with check (true);
-create policy "Anyone can read their session by id"
-  on search_sessions for select using (true);
-create policy "Anyone can update their session"
-  on search_sessions for update using (true);
+CREATE POLICY users_select_own ON users
+  FOR SELECT USING (auth_id = auth.uid());
 
--- ─── Fonctions utilitaires ────────────────────────────────────────────────────
--- Nettoyer les sessions expirées (à scheduler via pg_cron ou edge function)
-create or replace function cleanup_expired_sessions()
-returns void language plpgsql as $$
-begin
-  delete from search_sessions where expires_at < now();
-end;
-$$;
+CREATE POLICY users_update_own ON users
+  FOR UPDATE USING (auth_id = auth.uid());
 
--- Trigger : mettre à jour updated_at automatiquement
-create or replace function set_updated_at()
-returns trigger language plpgsql as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
+CREATE POLICY bookings_select_own ON bookings
+  FOR SELECT USING (user_id = (SELECT id FROM users WHERE auth_id = auth.uid()));
 
-create trigger trg_packages_updated_at
-  before update on packages
-  for each row execute function set_updated_at();
+CREATE POLICY bookings_insert_own ON bookings
+  FOR INSERT WITH CHECK (user_id = (SELECT id FROM users WHERE auth_id = auth.uid()));
 
-create trigger trg_profiles_updated_at
-  before update on profiles
-  for each row execute function set_updated_at();
+CREATE POLICY bookings_update_own ON bookings
+  FOR UPDATE USING (user_id = (SELECT id FROM users WHERE auth_id = auth.uid()));
+
+CREATE POLICY booking_items_select_own ON booking_items
+  FOR SELECT USING (booking_id IN (SELECT id FROM bookings WHERE user_id = (SELECT id FROM users WHERE auth_id = auth.uid())));
+
+CREATE POLICY events_select_public ON events
+  FOR SELECT USING (true);
+
+CREATE POLICY transactions_select_own ON transactions
+  FOR SELECT USING (booking_id IN (SELECT id FROM bookings WHERE user_id = (SELECT id FROM users WHERE auth_id = auth.uid())));
+
+CREATE POLICY saved_packages_select_own ON saved_packages
+  FOR SELECT USING (user_id = (SELECT id FROM users WHERE auth_id = auth.uid()));
+
+-- ─── Triggers ──────────────────────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+CREATE TRIGGER bookings_updated_at BEFORE UPDATE ON bookings FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+CREATE TRIGGER transactions_updated_at BEFORE UPDATE ON transactions FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+CREATE TRIGGER saved_packages_updated_at BEFORE UPDATE ON saved_packages FOR EACH ROW EXECUTE FUNCTION update_timestamp();

@@ -38,11 +38,15 @@ export interface Flight {
   arrivalTime: string;
   airline: string;
   price: number;
+  priceOneWay?: number;
   duration: number;
   stops: number;
   availability: number;
   flightNumber?: string;
   aircraft?: string;
+  returnDate?: string;
+  returnDepartureTime?: string;
+  returnArrivalTime?: string;
 }
 
 export interface Train {

@@ -57,9 +57,11 @@ function mapTMEvent(ev: any): Event {
     source:           'ticketmaster',
     // Champs supplémentaires utiles pour le pack builder
     status:           ev.dates?.status?.code,      // onsale | offsale | cancelled
-    ticketUrl:        ev.url,
+    ticketUrl:        ev.url,                       // lien direct vers la page TM
     seatMap:          ev.seatmap?.staticUrl,
     accessibility:    ev.accessibility,
+    // Toutes les plages de prix brutes (pour catégories réelles dans [id] route)
+    priceRanges:      ev.priceRanges ?? [],
   } as Event & Record<string, unknown>;
 }
 
